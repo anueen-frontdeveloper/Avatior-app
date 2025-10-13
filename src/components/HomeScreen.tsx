@@ -7,22 +7,48 @@ import GameBoard from "./GameBoard";
 import BetBox from "./BetBox";
 import BetHistory, { Bet } from "./BetHistory";
 import { calculatePayout } from "../utils/system";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import DepositModal from "./DepositModal";
-let functionCallCounter = 0;
+import {
+  useTotalBet,
+} from "../context/totalbetcontext";
 
+
+
+function getWeightedMultiplier() {
+  const roll = Math.random() * 100; // 0–100
+
+  if (roll < 110) {
+    // 40% chance
+    return `${(Math.random() * (5 - 1) + 1).toFixed(2)}x`;
+  } else if (roll < 70) {
+    // 30% chance
+    return `${(Math.random() * (10 - 5) + 5).toFixed(2)}x`;
+  } else if (roll < 90) {
+    // 20% chance
+    return `${(Math.random() * (15 - 10) + 10).toFixed(2)}x`;
+  } else if (roll < 100) {
+    // 10% chance
+    return `${(Math.random() * (30 - 15) + 15).toFixed(2)}x`;
+  } else if (roll < 105) {
+    // 5% chance
+    return `${(Math.random() * (100 - 30) + 30).toFixed(2)}x`;
+  } else {
+    // 0.5% chance
+    return `${(Math.random() * (1000 - 100) + 100).toFixed(2)}x`;
+  }
+}
 
 
 const HomeScreen: React.FC = () => {
-  const [balance, setBalance] = useState(1000);
-
+  const { balance, setBalance } = useTotalBet();
   const [depositVisible, setDepositVisible] = useState(false);
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
   const [systemEarning, setSystemEarning] = useState(0);
   const [systemVisible, setSystemVisible] = useState(false);
   const [totalWinUser, setTotalWinUser] = useState(0);
 
-  const [multipliers, setMultipliers] = useState<string[]>([]);
+  const [multipliers, setMultipliers] = useState<string[]>(
+    Array.from({ length: 6 }, () => getWeightedMultiplier())
+  );
 
   const [bets, setBets] = useState<Bet[]>([]);  // ✅ explicitly type state
   const [isRunning, setIsRunning] = useState(false);
@@ -41,7 +67,7 @@ const HomeScreen: React.FC = () => {
   // --- Betting ------------------------------------------------------------
   const handlePlaceBet = (amount: number) => {
     if (balance >= amount) {
-      setBalance(prev => prev - amount);
+      setBalance((prev: number) => prev - amount);
 
       setBets(prev =>
         prev.map(b =>
@@ -57,7 +83,7 @@ const HomeScreen: React.FC = () => {
   const handleCashOut = (amount: number, multiplier: number) => {
     const { userGain, systemGain } = calculatePayout(amount, multiplier);
 
-    setBalance((prev) => prev + userGain); // 70 % to player
+    setBalance((prev: number) => prev + userGain); // 70 % to player
     setSystemEarning((prev) => prev + systemGain); // 30 % to system
 
     // Update "You" bet in BetHistory
@@ -94,7 +120,7 @@ const HomeScreen: React.FC = () => {
       >
 
         <Header balance={balance} />
-        <BalanceHeader balance={balance} />
+        <BalanceHeader />
         <MultipliersBar multipliers={multipliers} />
         <GameBoard onCrash={handleCrash} onUpdate={handleUpdate} />
 
@@ -109,7 +135,7 @@ const HomeScreen: React.FC = () => {
             onCashOut={handleCashOut}
             onAdd={index === 0 ? addBetBox : undefined}
             onRemove={index > 0 ? removeBetBox : undefined}
-            openDepositModal={() => setDepositVisible(true)} 
+            openDepositModal={() => setDepositVisible(true)}
           />
         ))}
 

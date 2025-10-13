@@ -4,6 +4,8 @@ import SplashScreen from "./SplashScreen";
 import HomeScreen from "./src/components/HomeScreen";
 import "react-native-reanimated";
 import Loading from "./LoadingScreen";
+import { TotalBetProvider } from "./src/context/totalbetcontext";
+
 export type RootStackParamList = {
   Splash: undefined;
   User: undefined;
@@ -16,12 +18,17 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="loading" component={Loading} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <TotalBetProvider>
+
+      <NavigationContainer>
+
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="loading" component={Loading} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+        </Stack.Navigator>
+
+      </NavigationContainer>
+    </TotalBetProvider>
   );
 }

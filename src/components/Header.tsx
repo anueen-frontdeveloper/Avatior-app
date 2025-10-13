@@ -4,11 +4,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons"; // back icon
 import FontAwesome from "react-native-vector-icons/FontAwesome"; // star icon
 import DepositModal from "./DepositModal";
+import WalletScreen from "./WalletScreen";
 type Props = { balance: number; onPressTestBet?: () => void; };
 
 export default function Header({ balance }: Props) {
   const [depositVisible, setDepositVisible] = useState(false);
-
+  const [walletvisible, setwalletvisible] = useState(false);
   return (
     <View style={styles.container}>
       {/* Left Section */}
@@ -22,7 +23,7 @@ export default function Header({ balance }: Props) {
 
       {/* Right Section */}
       <View style={styles.right}>
-        <TouchableOpacity style={styles.depositBtn} onPress={() => setDepositVisible(true)}>
+        <TouchableOpacity style={styles.depositBtn} onPress={() => setwalletvisible(true)}>
           <Text style={styles.depositText}>Deposit</Text>
         </TouchableOpacity>
 
@@ -32,12 +33,14 @@ export default function Header({ balance }: Props) {
       </View>
 
       {/* Render Deposit Modal */}
-      {depositVisible && (
-        <DepositModal
-          visible={depositVisible}
-          onClose={() => setDepositVisible(false)}
-        />
+      {walletvisible && (
+        <View style={styles.walletOverlay}>
+          <View style={styles.walletContainer}>
+            <WalletScreen onClose={() => setwalletvisible(false)} />
+          </View>
+        </View>
       )}
+
     </View>
   );
 }
@@ -82,6 +85,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Oswald-VariableFont_wght", // 👈 use loaded custom font
   },
+  walletOverlay: {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  height: "10%", // 👈 only 10% height for the WalletScreen
+  backgroundColor: "rgba(0,0,0,0.6)", // dim overlay behind modal
+  justifyContent: "flex-end",
+},
+
+walletContainer: {
+  backgroundColor: "#fff",
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+},
+
   starWrapper: {
     width: 30,
     height: 30,

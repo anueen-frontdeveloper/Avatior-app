@@ -10,23 +10,22 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { PaymentMethod } from "./WalletScreen";
 
-type DepositModalProps = {
+type WithdrawalModalProps = {
   visible: boolean;
   onClose: () => void;
   onSelectMethod: (method: PaymentMethod) => void;
 };
 
-const DepositModal: React.FC<DepositModalProps> = ({
+const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
   visible,
   onClose,
   onSelectMethod,
 }) => {
-  const paymentMethods: PaymentMethod[] = [
-    { id: 1, name: "PhonePe" },
-    { id: 2, name: "UPI" },
-    { id: 3, name: "PayTm" },
-    { id: 4, name: "Bank Transfer" },
-    { id: 5, name: "Cryptocurrency" },
+  const withdrawalMethods: PaymentMethod[] = [
+    { id: 1, name: "Bank Transfer" },
+    { id: 2, name: "PayTm Wallet" },
+    { id: 3, name: "PayPal" },
+    { id: 4, name: "Crypto Wallet" },
   ];
 
   return (
@@ -34,23 +33,23 @@ const DepositModal: React.FC<DepositModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
           <View style={styles.header}>
-            <Text style={styles.title}>Deposit</Text>
+            <Text style={styles.title}>Withdraw</Text>
             <TouchableOpacity onPress={onClose}>
               <Icon name="close" size={24} color="#000" />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subText}>Select a deposit method</Text>
+          <Text style={styles.subText}>Select a withdrawal method</Text>
 
           <ScrollView contentContainerStyle={styles.methodList}>
-            {paymentMethods.map((method) => (
+            {withdrawalMethods.map((method) => (
               <TouchableOpacity
                 key={method.id}
                 style={styles.methodCard}
                 onPress={() => onSelectMethod(method)}
               >
                 <Icon
-                  name="wallet"
+                  name="bank-transfer"
                   size={28}
                   color="#444"
                   style={{ marginBottom: 6 }}
@@ -107,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DepositModal;
+export default WithdrawalModal;

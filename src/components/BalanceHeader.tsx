@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useTotalBet } from "../context/totalbetcontext";
 
 // Your modals
 import SettingsModal from "./SettingsModal";
@@ -12,8 +13,9 @@ type Props = { balance: number };
 // Define all modal keys in one place
 type ActiveModal = "settings" | "chat" | "provablyFair" | null;
 
-const BalanceHeader: React.FC<Props> = ({ balance }) => {
+const BalanceHeader: React.FC = () => {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const { balance } = useTotalBet();
 
   return (
     <View style={styles.container}>
@@ -23,7 +25,7 @@ const BalanceHeader: React.FC<Props> = ({ balance }) => {
       {/* Right: Balance + Actions */}
       <View style={styles.rightSection}>
         <Text style={styles.balanceText}>
-          {balance.toFixed(2)} <Text style={styles.currency}>INR</Text>
+          {balance} <Text style={styles.currency}>INR</Text>
         </Text>
 
         <TouchableOpacity
