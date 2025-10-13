@@ -6,9 +6,12 @@ import FontAwesome from "react-native-vector-icons/FontAwesome"; // star icon
 import DepositModal from "./DepositModal";
 import WalletScreen from "./WalletScreen";
 type Props = { balance: number; onPressTestBet?: () => void; };
+import { useTotalBet } from "../context/totalbetcontext";
 
-export default function Header({ balance }: Props) {
+
+export default function Header() {
   const [depositVisible, setDepositVisible] = useState(false);
+  const {balance} = useTotalBet();
   const [walletvisible, setwalletvisible] = useState(false);
   return (
     <View style={styles.container}>

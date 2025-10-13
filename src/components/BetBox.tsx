@@ -42,18 +42,13 @@ const BetBox: React.FC<Props> = ({
 
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [frozenMultiplier, setFrozenMultiplier] = useState(1);
-  const [modalVisible, setModalVisible] = useState(false);
   const [roundBetPlaced, setRoundBetPlaced] = useState(false);
-  const [hasQueuedBet, setHasQueuedBet] = useState(false);
-  const [hasActiveBet, setHasActiveBet] = useState(false);
 
-  const [toggleText, setToggleText] = useState(true); // true = Bet, false = Cancel
 
   // New auto options
   const [autoBet, setAutoBet] = useState(false);
   const [autoCash, setAutoCash] = useState(false);
   const [autoCashMultiplier, setAutoCashMultiplier] = useState("1.00");
-  const [isAdded, setIsAdded] = useState(true); // start as added
   const [showModal, setShowModal] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
 
@@ -175,7 +170,6 @@ const BetBox: React.FC<Props> = ({
                 value={amount.toString()}
                 keyboardType="decimal-pad"
                 onChangeText={(text) => {
-                  // Convert input to number, default to 0 if invalid
                   const parsed = parseFloat(text);
                   if (!isNaN(parsed)) {
                     setAmount(parsed);

@@ -119,7 +119,7 @@ const HomeScreen: React.FC = () => {
         nestedScrollEnabled={true}
       >
 
-        <Header balance={balance} />
+        <Header />
         <BalanceHeader />
         <MultipliersBar multipliers={multipliers} />
         <GameBoard onCrash={handleCrash} onUpdate={handleUpdate} />

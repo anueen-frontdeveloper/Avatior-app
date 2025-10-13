@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./App"; // adjust path
 import Header from "./src/components/Header"; // your existing header
-
+import { useTotalBet } from "./src/context/totalbetcontext";  
 type LoadingScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "loading"
@@ -16,6 +16,7 @@ const Loading = () => {
   const animations = useRef(
     Array.from({ length: ballCount }, () => new Animated.Value(0))
   ).current;
+  const { balance } = useTotalBet();
 
   useEffect(() => {
     // Animate balls
@@ -49,7 +50,7 @@ const Loading = () => {
   return (
     <View style={styles.container}>
       {/* Header at the top */}
-      <Header balance={1000} />
+      <Header balance={balance.toFixed(2)}  />
 
       {/* Centered logo + loader */}
       <View style={styles.centerContent}>

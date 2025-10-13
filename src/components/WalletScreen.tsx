@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import DepositModal from "./DepositModal"; // Assuming these are also styled with a dark theme
 import WithdrawalModal from "./WithdrawalModal"; // Assuming these are also styled with a dark theme
-
+import { useTotalBet } from "../context/totalbetcontext";
 // Define a type for the payment/deposit/withdrawal method
 export interface PaymentMethod {
   id: string | number;
@@ -23,6 +23,8 @@ type WalletScreenProps = {
 };
 
 const WalletScreen: React.FC<WalletScreenProps> = ({ onClose }) => {
+  const { balance } = useTotalBet();
+
   const [isDepositModalVisible, setDepositModalVisible] = useState(false);
   const [isWithdrawalModalVisible, setWithdrawalModalVisible] = useState(false);
 
@@ -44,7 +46,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({ onClose }) => {
       {/* Balance Display - Styled like a HUD element */}
       <View style={styles.balanceContainer}>
         <Text style={styles.balanceLabel}>TOTAL BALANCE</Text>
-        <Text style={styles.balanceAmount}>₹1000.75</Text>
+        <Text style={styles.balanceAmount}>₹{balance.toFixed(2)} </Text>
       </View>
 
       {/* Action Buttons - Custom styled buttons */}

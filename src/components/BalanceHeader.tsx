@@ -25,7 +25,7 @@ const BalanceHeader: React.FC = () => {
       {/* Right: Balance + Actions */}
       <View style={styles.rightSection}>
         <Text style={styles.balanceText}>
-          {balance} <Text style={styles.currency}>INR</Text>
+          {balance.toFixed(2)} <Text style={styles.currency}>INR</Text>
         </Text>
 
         <TouchableOpacity
@@ -103,3 +103,5 @@ const styles = StyleSheet.create({
 });
 
 export default BalanceHeader;
+
+

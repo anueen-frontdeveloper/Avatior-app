@@ -5,6 +5,7 @@ import HomeScreen from "./src/components/HomeScreen";
 import "react-native-reanimated";
 import Loading from "./LoadingScreen";
 import { TotalBetProvider } from "./src/context/totalbetcontext";
+import React from "react";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -18,6 +19,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
+    <React.StrictMode>
     <TotalBetProvider>
 
       <NavigationContainer>
@@ -30,5 +32,6 @@ export default function App() {
 
       </NavigationContainer>
     </TotalBetProvider>
+    </React.StrictMode>
   );
 }
