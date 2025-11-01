@@ -1,18 +1,19 @@
 //src/components/Header.tsx
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons"; // back icon
 import FontAwesome from "react-native-vector-icons/FontAwesome"; // star icon
-import DepositModal from "./DepositModal";
-import WalletScreen from "./WalletScreen";
+import DepositModal from "./Deposit/DepositModal";
 type Props = { balance: number; onPressTestBet?: () => void; };
-import { useTotalBet } from "../context/totalbetcontext";
-
+import { useTotalBet } from "../context/BalanceContext";
+import DepositWallet from "./Deposit/DepositWallet";
+import type { PaymentMethod } from "./Deposit/DepositModal";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function Header() {
-  const [depositVisible, setDepositVisible] = useState(false);
-  const {balance} = useTotalBet();
-  const [walletvisible, setwalletvisible] = useState(false);
+  const [walletVisible, setWalletVisible] = useState(false);
+  const { balance } = useTotalBet();
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   return (
     <View style={styles.container}>
       {/* Left Section */}
@@ -21,28 +22,44 @@ export default function Header() {
         <Text style={styles.backText}>Back</Text>
       </View>
 
-      {/* Middle Section */}
-      <Text style={styles.centerText}>INR {balance.toFixed(2)}</Text>
+      <Text style={[styles.centerText, { textAlign: 'right' }]}>
+        <Text style={{ color: '#a0a0a0ff' }}>INR
+          <Icon name="keyboard-arrow-down" size={14} color="#a0a0a0ff" style={{ marginLeft: 2 }} />
+
+          {'\n'} </Text>
+        <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'Barlow-Bold' }}>
+          {(balance ?? 0).toFixed(2)}
+        </Text>
+      </Text>
+
 
       {/* Right Section */}
       <View style={styles.right}>
-        <TouchableOpacity style={styles.depositBtn} onPress={() => setwalletvisible(true)}>
+        <TouchableOpacity style={styles.depositBtn} onPress={() => setWalletVisible(true)}>
+
           <Text style={styles.depositText}>Deposit</Text>
         </TouchableOpacity>
-
+        <Modal visible={walletVisible} animationType="slide" transparent>
+          {selectedMethod ? (
+            <DepositWallet
+              method={selectedMethod}
+              onBack={() => setSelectedMethod(null)}
+              onClose={() => setWalletVisible(false)}
+              onDeposit={(amount) => console.log("Deposited:", amount)}
+            />
+          ) : (
+            <DepositModal
+              onClose={() => setWalletVisible(false)}
+              onSelectMethod={(method) => setSelectedMethod(method)}
+            />
+          )}
+        </Modal>
         <View style={styles.starWrapper}>
           <FontAwesome name="star" size={18} color="#fff" />
         </View>
       </View>
 
-      {/* Render Deposit Modal */}
-      {walletvisible && (
-        <View style={styles.walletOverlay}>
-          <View style={styles.walletContainer}>
-            <WalletScreen onClose={() => setwalletvisible(false)} />
-          </View>
-        </View>
-      )}
+
 
     </View>
   );
@@ -53,7 +70,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-
+    paddingTop: 40,
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 10,
@@ -69,8 +86,9 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   centerText: {
-    color: "white",
-    fontSize: 12,
+    color: "#b1b1b1ff",
+    fontSize: 11,
+    marginLeft: 88,
   },
   right: {
     flexDirection: "row",
@@ -81,31 +99,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#00B24C",
     borderRadius: 10,
     paddingVertical: 6,
-    paddingHorizontal: 15,
+    paddingHorizontal: 14,
   },
   depositText: {
     color: "white",
-    fontSize: 16,
-    fontFamily: "Oswald-VariableFont_wght", // 👈 use loaded custom font
+    fontSize: 12,
+    fontFamily: "Barlow-Bold", // 👈 use loaded custom font
   },
-  walletOverlay: {
-  position: "absolute",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  height: "10%", // 👈 only 10% height for the WalletScreen
-  backgroundColor: "rgba(0,0,0,0.6)", // dim overlay behind modal
-  justifyContent: "flex-end",
-},
 
-walletContainer: {
-  backgroundColor: "#fff",
-  borderTopLeftRadius: 16,
-  borderTopRightRadius: 16,
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-},
 
   starWrapper: {
     width: 30,
@@ -115,4 +116,4 @@ walletContainer: {
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}); 

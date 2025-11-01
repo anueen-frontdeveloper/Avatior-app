@@ -1,5 +1,21 @@
-import React from "react";
-import { X } from "lucide-react";
+import React from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Linking,
+} from 'react-native';
+import {
+  X,
+  Gift,
+  CloudRain,
+  Dice5,
+  Menu,
+  ChevronRight,
+} from 'lucide-react-native';
 
 interface GameRulesProps {
   visible: boolean;
@@ -7,65 +23,201 @@ interface GameRulesProps {
 }
 
 const GameRules: React.FC<GameRulesProps> = ({ visible, onClose }) => {
-  if (!visible) return null; // don't render if not visible
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#121212] text-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 relative">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-yellow-500 uppercase tracking-widest">
-            Game Rules
-          </h1>
-          <button
-            onClick={onClose}
-            aria-label="Close Game Rules"
-            className="text-gray-400 hover:text-white transition"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.headerTitle}>Game Rules</Text>
+            <TouchableOpacity onPress={onClose}>
+              <X size={22} color="red" />
+            </TouchableOpacity>
+          </View>
 
-        <hr className="border-gray-700 mb-6" />
+          {/* Scrollable content */}
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* Free Bets */}
+            <View style={styles.section}>
+              <View style={styles.rowTitle}>
+                <Gift size={18} color="red" />
+                <Text style={styles.sectionTitle}> Free Bets</Text>
+              </View>
 
-        {/* Rules Section */}
-        <div className="bg-yellow-500 text-black rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Basic Rules</h2>
-          <ul className="space-y-4 text-base leading-relaxed">
-            <li>
-              <span className="font-bold">1.</span> Each round starts after a
-              short countdown. Players can place one or two bets before the round
-              begins.
-            </li>
-            <li>
-              <span className="font-bold">2.</span> The multiplier (coefficient)
-              increases continuously as the plane flies.
-            </li>
-            <li>
-              <span className="font-bold">3.</span> You must cash out before the
-              plane flies away to secure your winnings.
-            </li>
-            <li>
-              <span className="font-bold">4.</span> If you don’t cash out in
-              time, the bet amount is lost.
-            </li>
-            <li>
-              <span className="font-bold">5.</span> Maximum winning amount per bet
-              is <span className="font-bold">₹2,500,000.00</span>.
-            </li>
-          </ul>
-        </div>
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  You can check the status of Free Bets from Game Menu {'>'} Free Bets.
+                </Text>
+              </View>
 
-        <hr className="border-gray-700 mb-6" />
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Free Bets are awarded by the operator or by the Rain Feature.
+                </Text>
+              </View>
+            </View>
 
-        {/* Extra Info */}
-        <div className="text-sm text-gray-400 text-center leading-relaxed">
-          Please play responsibly. Betting involves financial risk — only play
-          with money you can afford to lose.
-        </div>
-      </div>
-    </div>
+            {/* Rain Feature */}
+            <View style={styles.section}>
+              <View style={styles.rowTitle}>
+                <CloudRain size={18} color="red" />
+                <Text style={styles.sectionTitle}> Rain Feature</Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  The operator can drop Free Bets into the chat through the Rain feature.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  To claim these Free Bets, just press the “Claim” button when they appear in the chat.
+                </Text>
+              </View>
+            </View>
+
+            {/* Randomisation */}
+            <View style={styles.section}>
+              <View style={styles.rowTitle}>
+                <Dice5 size={18} color="red" />
+                <Text style={styles.sectionTitle}> Randomisation</Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  The multiplier for each round is generated by a “Provably Fair” algorithm and is completely transparent, and 100% fair.{' '}
+                  <Text
+                    style={styles.link}
+                    onPress={() =>
+                      Linking.openURL('https://example.com/provably-fair')
+                    }>
+                    Read more about provably fair system
+                  </Text>
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  You can check and modify the Provably Fair settings from the Game menu {'>'} Provably Fair settings.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  You can check the fairness of each round by pressing the 🛡 icon, opposite the results in the “My Bets” or inside “Top” tabs.
+                </Text>
+              </View>
+            </View>
+
+            {/* Game Menu */}
+            <View style={styles.section}>
+              <View style={styles.rowTitle}>
+                <Menu size={18} color="red" />
+                <Text style={styles.sectionTitle}> Game Menu</Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Access the Game Menu by tapping the menu button at the top right corner.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Toggle “Sound” to turn game sounds on or off.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Toggle “Music” to turn background music on or off.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Toggle “Animation” to enable or disable airplane animation.
+                </Text>
+              </View>
+
+              <View style={styles.row}>
+                <ChevronRight size={16} color="red" />
+                <Text style={styles.text}>
+                  Press “Limits” to view minimum and maximum bet limits.
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
   );
 };
 
 export default GameRules;
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#121212',
+    borderRadius: 10,
+    padding: 20,
+    maxHeight: '90%',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  section: {
+    marginBottom: 18,
+  },
+  rowTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  text: {
+    color: '#ccc',
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
+  },
+  link: {
+    color: 'red',
+    textDecorationLine: 'underline',
+  },
+});

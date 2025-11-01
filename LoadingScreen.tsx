@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./App"; // adjust path
 import Header from "./src/components/Header"; // your existing header
-import { useTotalBet } from "./src/context/totalbetcontext";  
+import { useTotalBet } from "./src/context/BalanceContext";  
 type LoadingScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "loading"
@@ -50,7 +50,7 @@ const Loading = () => {
   return (
     <View style={styles.container}>
       {/* Header at the top */}
-      <Header balance={balance.toFixed(2)}  />
+      <Header   />
 
       {/* Centered logo + loader */}
       <View style={styles.centerContent}>

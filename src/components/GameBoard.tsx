@@ -7,11 +7,7 @@ import {
   Text,
 
 } from "react-native";
-import { LogBox } from 'react-native';
-LogBox.ignoreLogs([
-  '[Reanimated] Reading from `value` during component render',
-]);
-import BetHistory from "./BetHistory";
+
 import Svg, { Path, Image as SvgImage } from "react-native-svg";
 import FastImage from "react-native-fast-image";
 import Animated, {
@@ -28,7 +24,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { getCrashPoint } from "../utils/getCrashPoint";
 import Sound from "react-native-sound";
-
+import { useSound } from "../context/SoundContext";
 const { width } = Dimensions.get("window");
 const HEIGHT = 215;
 const WIDTH = 300;
@@ -36,7 +32,10 @@ const WIDTH = 300;
 type Props = {
   onCrash?: (val: number) => void;
   onUpdate?: (val: number, isRunning: boolean) => void;
+  bets?: any[];   // <-- add this line
+
 };
+
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedSvgImage = Animated.createAnimatedComponent(SvgImage);
@@ -44,28 +43,33 @@ const AnimatedSvgImage = Animated.createAnimatedComponent(SvgImage);
 export default function BalloonThread({
   onCrash,
   onUpdate,
+  bets
 }: Props) {
   const points = [{ x: 20, y: 206 }, { x: 225, y: 50 }];
   const loopStart = { x: 225, y: 50 };
   const loopEnd = { x: 270, y: 100 };
-  const riseDuration = 4500;
+  const riseDuration = 2500;
   const glow = useSharedValue(1);
 
   const progressAnim = useSharedValue(0);
+  // shared values
+  const multiplier = useSharedValue(1);
   const cx = useSharedValue(points[0].x);
   const cy = useSharedValue(points[0].y);
-  const sway = useSharedValue(0);
-  const multiplier = useSharedValue(1);
   const isCrashing = useSharedValue(false);
+
+  const sway = useSharedValue(0);
 
   const [isRunning, setIsRunning] = useState(true);
   const [showCrash, setShowCrash] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const { soundEnabled } = useSound();
   const [totalWinUser, setTotalWinUser] = useState(0);
 
   const crashPoint = useSharedValue(
     getCrashPoint({ totalBetAmount: 1000, cashouttotal: totalWinUser })
   );
+
   const animatedThreadProps = useAnimatedProps(() => {
     const midX = (cx.value + points[0].x) / 1.2 + sway.value;
     const midY = (cy.value + points[0].y) / 3 + 50;
@@ -128,24 +132,20 @@ export default function BalloonThread({
     if (multiplier.value > 10) glowColor = '#9D1F80';
 
     return {
-      textShadowRadius: 10 + glow.value * 80,
+      textShadowRadius: 19 + glow.value * 90,
       textShadowColor: glowColor,
       textShadowOffset: { width: 3, height: 0 },
     };
   });
 
 
-  // --- THIS IS THE MAIN FIX ---
   useEffect(() => {
     if (!isRunning) return;
 
-    // Reset multiplier immediately
     multiplier.value = 1;
 
     playStartSound(() => {
-      // Delay actual game start by 0.5s after sound starts
       setTimeout(() => {
-        // Animate balloon/plane
         cx.value = withTiming(points[1].x, { duration: riseDuration });
         cy.value = withTiming(points[1].y, { duration: riseDuration }, () => {
           if (!isCrashing.value) {
@@ -175,8 +175,10 @@ export default function BalloonThread({
         let rafId: number;
 
         const tick = () => {
-          const elapsed = (Date.now() - startTime) / 2000;
-          const next = 1 + Math.pow(elapsed, 1.1) / 10;
+          const elapsed = (Date.now() - startTime) / 1000; // seconds
+          const growthRate = Math.log(100) / 120; // reach 100x at ~30s
+
+          const next = Math.exp(growthRate * elapsed);
           multiplier.value = next;
 
           if (onUpdate) runOnJS(onUpdate)(next, true);
@@ -256,21 +258,32 @@ export default function BalloonThread({
   };
 
   const playStartSound = (onFinish?: () => void) => {
-    const start = new Sound(
-      "startingplane.mp3",
-      Sound.MAIN_BUNDLE,
-      (error) => {
-        if (error) {
-          console.log("Failed to load starting sound", error);
-          onFinish?.();
-          return;
-        }
-        start.play(() => {
-          start.release();
-          onFinish?.();
-        });
+    if (!soundEnabled) {
+      onFinish?.();
+      return;
+    }
+    const start = new Sound("startingplane.mp3", Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.log("Failed to load starting sound", error);
+        onFinish?.();
+        return;
       }
-    );
+      start.play(() => {
+        start.release();
+        onFinish?.();
+      });
+    });
+  };
+
+  const playCrashSound = () => {
+    if (!soundEnabled) return;
+    const crash = new Sound("flewaway1.mp3", Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.log("Failed to load sound", error);
+        return;
+      }
+      crash.play(() => crash.release());
+    });
   };
   const animatedPlaneStyle = useAnimatedStyle(() => ({
     transform: [
@@ -278,21 +291,6 @@ export default function BalloonThread({
       { translateY: cy.value - 70 }, // offset to center the plane
     ],
   }));
-
-  const playCrashSound = () => {
-    const crash = new Sound(
-      "flewaway1.mp3",
-      Sound.MAIN_BUNDLE,
-      (error) => {
-        if (error) {
-          console.log("Failed to load sound", error);
-          return;
-        }
-        crash.play(() => crash.release());
-      }
-    );
-  };
-
   return (
     <View style={styles.container}>
       <FastImage
@@ -348,8 +346,12 @@ export default function BalloonThread({
           )}
         </View>
       )}
-      <PlayerCounter isRunning={isRunning} isCrashed={showCrash} countdown={countdown} />
-    </View>
+      <PlayerCounter
+        isRunning={isRunning}
+        isCrashed={showCrash}
+        countdown={countdown}
+        count={bets?.length ?? 0}   // ✅ safe access — shows 0 if bets is undefined
+      />    </View>
   );
 }
 
@@ -443,11 +445,11 @@ const styles = StyleSheet.create({
 const PlayerCounter: React.FC<{
   isRunning: boolean;
   isCrashed: boolean;
-  countdown: number;  // <-- new
-
+  countdown: number;
+  count?: number;   // externally supplied value, e.g., bets.length
   style?: any;
-}> = ({ isRunning, isCrashed, style }) => {
-  const [count, setCount] = useState(0);
+}> = ({ isRunning, isCrashed, countdown, count, style }) => {
+  const [internalCount, setInternalCount] = useState(0);
   const [avatars, setAvatars] = useState<string[]>([
     `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
     `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
@@ -457,10 +459,9 @@ const PlayerCounter: React.FC<{
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
 
-    // 🚦 WAITBOX MODE (before run)
     if (!isRunning && !isCrashed) {
       interval = setInterval(() => {
-        setCount((c) => c + 1); // slowly increase
+        setInternalCount(c => c + 1);
         setAvatars([
           `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
           `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
@@ -469,18 +470,14 @@ const PlayerCounter: React.FC<{
       }, 400);
     }
 
-    // 🏃 RUNNING MODE
     if (isRunning && !isCrashed) {
       interval = setInterval(() => {
-        setCount((c) => Math.max(0, c - Math.floor(Math.random() * 5 + 1)));
-        // Avatars freeze → no updates here
+        setInternalCount(c => Math.max(0, c - Math.floor(Math.random() * 5 + 1)));
       }, 700);
     }
 
-    // 💥 CRASH MODE
-    if (isCrashed) {
-      if (interval) clearInterval(interval);
-      interval = null;
+    if (isCrashed && interval) {
+      clearInterval(interval);
     }
 
     return () => {
@@ -489,7 +486,6 @@ const PlayerCounter: React.FC<{
   }, [isRunning, isCrashed]);
 
   return (
-
     <View style={[playerStyles.playerCounter, style]}>
       <View style={[playerStyles.container, style]}>
         <View style={playerStyles.avatars}>
@@ -501,12 +497,13 @@ const PlayerCounter: React.FC<{
             />
           ))}
         </View>
-        <Text style={playerStyles.count}>{count}</Text>
+        <Text style={playerStyles.count}>
+          {count !== undefined ? count : internalCount}
+        </Text>
       </View>
     </View>
   );
 };
-
 const playerStyles = StyleSheet.create({
   container: {
     flexDirection: "row",

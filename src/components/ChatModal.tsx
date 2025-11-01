@@ -1,12 +1,6 @@
 import React, { useMemo } from "react";
 import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  StyleSheet,
+  Modal, View, Text, TouchableOpacity, ScrollView, Image, StyleSheet,
 } from "react-native";
 
 type Message =
@@ -49,8 +43,7 @@ const generateMessages = (count: number): Message[] => {
         win: (500 + Math.random() * 200).toFixed(2),
         round: (60 + Math.random() * 10).toFixed(2) + "x",
         bet: "FREE BET",
-        avatar: avatars[Math.floor(Math.random() * avatars.length)], // ✅ assign avatar
-
+        avatar: avatars[Math.floor(Math.random() * avatars.length)],
       });
     } else {
       // 25% chance = normal chat
@@ -74,31 +67,32 @@ type Props = {
 };
 
 const ChatModal: React.FC<Props> = ({ visible, onClose }) => {
-  // Generate once (memoized)
+  // 🟢 DV: computed once per mount (but random each mount)
   const messages = useMemo(() => generateMessages(20), []);
 
   return (
+    // 🟢 DV: Modal toggled by prop
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          {/* Close */}
+          {/* 🟢 DV interactivity */}
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <Text style={styles.closeText}>×</Text>
           </TouchableOpacity>
 
-          {/* Header */}
+          {/* Static header count — could be DV if you wire it */}
           <Text style={styles.header}>● 1148</Text>
 
-          {/* Messages */}
+          {/* 🟢 DV: looping through random data */}
           <ScrollView style={styles.scroll}>
             {messages.map((msg) => {
+              // 🟢 DV: conditionally renders different branches
               if (msg.type === "ban") {
                 return (
                   <View key={msg.id} style={styles.banBox}>
                     <Text style={styles.banText}>
                       <Text style={styles.user}>{msg.user}</Text> has been{" "}
-                      <Text style={styles.bold}>banned</Text> from chat for{" "}
-                      {msg.duration} d.
+                      <Text style={styles.bold}>banned</Text> from chat for {msg.duration} d.
                     </Text>
                     <Text style={styles.reason}>Reason: {msg.reason}</Text>
                   </View>
@@ -107,21 +101,18 @@ const ChatModal: React.FC<Props> = ({ visible, onClose }) => {
               if (msg.type === "bot") {
                 return (
                   <View key={msg.id} style={styles.botBox}>
-                    {/* header */}
                     <Text style={styles.botHeader}>🤖 {msg.text}</Text>
-
-                    {/* card */}
                     <View style={styles.botCard}>
-                      {/* avatar + username */}
                       <View style={styles.userRow}>
+                        {/* 🟢 DV: dynamic avatar URL */}
                         <Image
-                          source={{ uri: msg.avatar ?? "https://i.pravatar.cc/40" }} // user avatar
+                          source={{ uri: msg.avatar ?? "https://i.pravatar.cc/40" }}
                           style={styles.avatar}
                         />
                         <Text style={styles.botUser}>{msg.user}</Text>
                       </View>
 
-                      {/* info rows */}
+                      {/* 🟢 DV: dynamic values */}
                       <View style={styles.row}>
                         <Text style={styles.label}>Cashed out:</Text>
                         <Text style={styles.cashedOut}>{msg.cashedOut}</Text>
@@ -164,7 +155,6 @@ const ChatModal: React.FC<Props> = ({ visible, onClose }) => {
     </Modal>
   );
 };
-
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,

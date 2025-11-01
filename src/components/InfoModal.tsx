@@ -16,7 +16,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
 }) => {
     const totalWin = betAmount * frozenMultiplier;
 
-    // Auto-close after 2 seconds
+    // Auto-close after 2 seconds 
     useEffect(() => {
         if (visible) {
             const timer = setTimeout(() => {

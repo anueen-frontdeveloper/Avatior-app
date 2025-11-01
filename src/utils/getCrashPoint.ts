@@ -1,37 +1,30 @@
-// 💥 Simple crash point generator
-// Decides when the plane will "fly away"
-
-type CrashOptions = {
-  totalBetAmount: number;  // How much the player has bet
-  cashouttotal: number;    // How much the player already took out
+export type CrashOptions = {
+  totalBetAmount: number;
+  cashouttotal: number;
 };
 
 export function getCrashPoint(options: CrashOptions): number {
-  const total = options.totalBetAmount;
-  const cashout = options.cashouttotal;
+  const { totalBetAmount: total, cashouttotal: cashout } = options;
 
+  // Unified random crash system — same logic always
   const luck = Math.random();
+  let crashPoint: number;
 
-  const base = 1 + Math.random() * 10;
-
-  const tooMuch = 0.7;
-  if (cashout >= tooMuch * total) {
-
-    const halfBase = base * 0.5;
-    const crashLow = Math.max(1, halfBase);   // at least 1x
-    const crashHigh = Math.min(tooMuch, crashLow); // not above 0.7x
-    return crashHigh;
+  if (luck < 0.6) {
+    // 40% chance: early bust 1–2x
+    crashPoint = +(1 + Math.random() * 1).toFixed(2);
+  } 
+  else if (luck < 0.8) {
+    // 40% chance: decent 2–10x
+    crashPoint = +(2 + Math.random() * 8).toFixed(2);
+  } else if (luck < 0.97) {
+    // 17% chance: excellent 10–30x
+    crashPoint = +(10 + Math.random() * 20).toFixed(2);
+  } 
+  else {
+    // 3% chance: legendary 30–100x
+    crashPoint = +(30 + Math.random() * 70).toFixed(2);
   }
 
-  // 🎲 30% of the time = instant crash (bad luck)
-  if (luck < 0.3) {
-    const crashEarly = base * 0.5; // small crash
-    return Math.max(1, crashEarly); // at least 1x
-  }
-
-  const random = Math.random() * 50;   // random 0–50
-  const crash = 1 + Math.pow(random, 1.2) / 10;
-
-
-  return Math.min(crash, 100); // never above 100x
+  return crashPoint;
 }

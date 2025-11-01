@@ -1,5 +1,6 @@
-// src/components/HomeScreen.tsx
-import React, { useState, useEffect } from "react"; import { ScrollView, StyleSheet, View, TouchableOpacity } from "react-native";
+// src/components/HomeScreen.tsx                                                                                                                     
+import React, { useState, useEffect } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import Header from "./Header";
 import BalanceHeader from "./BalanceHeader";
 import MultipliersBar from "./MultipliersBar";
@@ -7,56 +8,50 @@ import GameBoard from "./GameBoard";
 import BetBox from "./BetBox";
 import BetHistory, { Bet } from "./BetHistory";
 import { calculatePayout } from "../utils/system";
-import {
-  useTotalBet,
-} from "../context/totalbetcontext";
-
-
+import { useTotalBet } from "../context/BalanceContext";
+import { EarningsProvider } from "../context/EarningsContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function getWeightedMultiplier() {
-  const roll = Math.random() * 100; // 0–100
+  const roll = Math.random() * 100;
 
-  if (roll < 110) {
-    // 40% chance
-    return `${(Math.random() * (5 - 1) + 1).toFixed(2)}x`;
-  } else if (roll < 70) {
-    // 30% chance
-    return `${(Math.random() * (10 - 5) + 5).toFixed(2)}x`;
-  } else if (roll < 90) {
-    // 20% chance
-    return `${(Math.random() * (15 - 10) + 10).toFixed(2)}x`;
-  } else if (roll < 100) {
-    // 10% chance
-    return `${(Math.random() * (30 - 15) + 15).toFixed(2)}x`;
-  } else if (roll < 105) {
-    // 5% chance
-    return `${(Math.random() * (100 - 30) + 30).toFixed(2)}x`;
-  } else {
-    // 0.5% chance
-    return `${(Math.random() * (1000 - 100) + 100).toFixed(2)}x`;
-  }
+  if (roll < 40) return `${(Math.random() * (5 - 1) + 1).toFixed(2)}x`;
+  if (roll < 70) return `${(Math.random() * (10 - 5) + 5).toFixed(2)}x`;
+  if (roll < 90) return `${(Math.random() * (15 - 10) + 10).toFixed(2)}x`;
+  if (roll < 100) return `${(Math.random() * (30 - 15) + 15).toFixed(2)}x`;
+  if (roll < 105) return `${(Math.random() * (100 - 30) + 30).toFixed(2)}x`;
+  return `${(Math.random() * (1000 - 100) + 100).toFixed(2)}x`;
 }
 
 
 const HomeScreen: React.FC = () => {
   const { balance, setBalance } = useTotalBet();
-  const [depositVisible, setDepositVisible] = useState(false);
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
   const [systemEarning, setSystemEarning] = useState(0);
-  const [systemVisible, setSystemVisible] = useState(false);
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [liveMultiplier, setLiveMultiplier] = useState(1);
   const [totalWinUser, setTotalWinUser] = useState(0);
-
   const [multipliers, setMultipliers] = useState<string[]>(
     Array.from({ length: 6 }, () => getWeightedMultiplier())
   );
-
-  const [bets, setBets] = useState<Bet[]>([]);  // ✅ explicitly type state
-  const [isRunning, setIsRunning] = useState(false);
-  const [liveMultiplier, setLiveMultiplier] = useState(1);
+  useEffect(() => {
+    const loadBalance = async () => {
+      if (balance === null) {
+        // could fetch from API or AsyncStorage
+        const fetched = 0; // dynamic value later
+        setBalance(fetched);
+      }
+    };
+    loadBalance();
+  }, [balance]);
 
   // --- Game events --------------------------------------------------------
   const handleCrash = (val: number) => {
     setMultipliers((prev) => [`${val.toFixed(2)}x`, ...prev].slice(0, 20));
+  };
+  const handleCancelBet = (amount: number) => {
+    setBalance((prev) => (prev ?? 0) + amount);
   };
 
   const handleUpdate = (val: number, running: boolean) => {
@@ -66,11 +61,11 @@ const HomeScreen: React.FC = () => {
 
   // --- Betting ------------------------------------------------------------
   const handlePlaceBet = (amount: number) => {
-    if (balance >= amount) {
-      setBalance((prev: number) => prev - amount);
-
-      setBets(prev =>
-        prev.map(b =>
+    const currentBalance = balance ?? 0;       // fallback to 0 if null
+    if (currentBalance >= amount) {
+      setBalance((prev) => (prev ?? 0) - amount);
+      setBets((prev) =>
+        prev.map((b) =>
           b.user === "You"
             ? { ...b, bet: amount, isVisible: true }
             : b
@@ -78,12 +73,10 @@ const HomeScreen: React.FC = () => {
       );
     }
   };
-
-  /** Split payout – user 70 % / system 30 % */
   const handleCashOut = (amount: number, multiplier: number) => {
     const { userGain, systemGain } = calculatePayout(amount, multiplier);
 
-    setBalance((prev: number) => prev + userGain); // 70 % to player
+    setBalance((prev) => (prev ?? 0) + userGain);
     setSystemEarning((prev) => prev + systemGain); // 30 % to system
 
     // Update "You" bet in BetHistory
@@ -98,7 +91,6 @@ const HomeScreen: React.FC = () => {
     console.log(`Round: user ₹${userGain.toFixed(2)}, system ₹${systemGain.toFixed(2)}`);
   };
 
-  // 🟢 Start first round automatically when app loads
   useEffect(() => {
     setIsRunning(true);
   }, []);
@@ -111,48 +103,48 @@ const HomeScreen: React.FC = () => {
 
   // --- Rendering ----------------------------------------------------------
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ paddingBottom: 10 }}
-        stickyHeaderIndices={[0]}
-        nestedScrollEnabled={true}
-      >
+    <EarningsProvider>
 
-        <Header />
-        <BalanceHeader />
-        <MultipliersBar multipliers={multipliers} />
-        <GameBoard onCrash={handleCrash} onUpdate={handleUpdate} />
+      <View style={{ flex: 1, backgroundColor: "#000" }}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: 10 }}
+          stickyHeaderIndices={[0]}
+          nestedScrollEnabled={true}
+        >
 
-        {betBoxes.map((id, index) => (
-          <BetBox
-            key={id}
-            id={id}
-            balance={balance}
+          <Header />
+          <BalanceHeader />
+          <MultipliersBar multipliers={multipliers} />
+          <GameBoard bets={bets} onCrash={handleCrash} onUpdate={handleUpdate} />
+
+          {betBoxes.map((id, index) => (
+            <BetBox
+              key={id}
+              id={id}
+              balance={balance ?? 0}
+              liveMultiplier={liveMultiplier}
+              isRunning={isRunning}
+              onPlaceBet={handlePlaceBet}
+              onCashOut={handleCashOut}
+              onCancelBet={handleCancelBet}   // ✅ refund support
+
+              onAdd={index === 0 ? addBetBox : undefined}
+              onRemove={index > 0 ? removeBetBox : undefined}
+            />
+          ))}
+
+
+          <BetHistory
+            onTotalWinChange={setTotalWinUser}
             liveMultiplier={liveMultiplier}
             isRunning={isRunning}
-            onPlaceBet={handlePlaceBet}
-            onCashOut={handleCashOut}
-            onAdd={index === 0 ? addBetBox : undefined}
-            onRemove={index > 0 ? removeBetBox : undefined}
-            openDepositModal={() => setDepositVisible(true)}
+            bets={bets}       // pass the bets state
+            setBets={setBets} // pass the setter 
           />
-        ))}
-
-
-        <BetHistory
-          onTotalWinChange={setTotalWinUser}
-          liveMultiplier={liveMultiplier}
-          isRunning={isRunning}
-          bets={bets}       // pass the bets state
-          setBets={setBets} // pass the setter
-        />
-      </ScrollView>
-
-
-
-
-    </View>
+        </ScrollView>
+      </View>
+    </EarningsProvider>
   );
 };
 
@@ -170,3 +162,5 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
+//

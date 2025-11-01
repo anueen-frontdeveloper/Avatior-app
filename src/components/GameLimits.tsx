@@ -39,7 +39,7 @@ const GameLimits: React.FC<Props> = ({ visible, onClose }) => {
 
             <View style={styles.row}>
               <Text style={styles.label}>Maximum win for bet INR:</Text>
-              <Text style={styles.value}>25Lakh</Text>
+              <Text style={styles.value}>25,000,000.00</Text>
             </View>
           </View>
         </View>
@@ -52,13 +52,13 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.8)",
-    justifyContent: "center",
     alignItems: "center",
+    marginTop: 60,
   },
   modalBox: {
     width: width * 0.9,
     backgroundColor: "#1c1c1c",
-    borderRadius: 10,
+    borderRadius: 15,
     paddingBottom: 15,
   },
   header: {
@@ -66,12 +66,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#2c2c2c",
+    borderTopStartRadius: 15,
+    borderTopEndRadius: 15,
     paddingVertical: 12,
     paddingHorizontal: 15,
   },
   title: {
     color: "#fff",
-    fontWeight: "700",
+    fontWeight: "300",
     letterSpacing: 1,
     fontSize: 15,
   },
@@ -91,13 +93,19 @@ const styles = StyleSheet.create({
     borderColor: "#333",
   },
   label: {
-    color: "#aaa",
-    fontSize: 14,
+    color: "#fff",
+    fontSize: 12,
   },
   value: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
+    color: "#dadadaff",
+    fontSize: 12,
+    fontFamily: "Barlow-Regular",
+    backgroundColor: "#1275283d",
+    paddingHorizontal: 16,
+    borderColor: "#00ff77b0",
+    borderWidth: 1,
+    paddingVertical: 2,
+    borderRadius: 25,
   },
 });
 

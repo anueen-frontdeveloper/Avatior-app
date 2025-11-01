@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Switch, TextInput } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Switch, TextInput } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import InfoModal from "./InfoModal";
+import DepositModal from "./Deposit/DepositModal";
+import { useTotalBet } from "../context/BalanceContext";
+import DepositScreen from "./Deposit/DepositScreen";
+
 type Props = {
   id: number;
   onAdd?: () => void;
@@ -29,7 +33,6 @@ const BetBox: React.FC<Props> = ({
   onCashOut,
   onCrash,
   id, onAdd, onRemove,
-  balance,
   onUpdate,
   onPress = () => { },
   title = "Bet",
@@ -39,20 +42,28 @@ const BetBox: React.FC<Props> = ({
   const [amount, setAmount] = useState<number>(100);
   const [hasBet, setHasBet] = useState(false);
   const [queuedNextRound, setQueuedNextRound] = useState(false);
+  const { balance } = useTotalBet();
 
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [frozenMultiplier, setFrozenMultiplier] = useState(1);
+  const [modalVisible, setModalVisible] = useState(false);
   const [roundBetPlaced, setRoundBetPlaced] = useState(false);
+  const [hasQueuedBet, setHasQueuedBet] = useState(false);
+  const [hasActiveBet, setHasActiveBet] = useState(false);
+  const pressLock = useRef(false);
 
+  const [toggleText, setToggleText] = useState(true); // true = Bet, false = Cancel
 
   // New auto options
   const [autoBet, setAutoBet] = useState(false);
   const [autoCash, setAutoCash] = useState(false);
   const [autoCashMultiplier, setAutoCashMultiplier] = useState("1.00");
+  const [isAdded, setIsAdded] = useState(true); // start as added
   const [showModal, setShowModal] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
 
   const presets = [100, 200, 500, 1000];
+
   useEffect(() => {
     if (autoBet && !isRunning && !hasBet && !roundBetPlaced) {
       setHasBet(true);
@@ -60,6 +71,8 @@ const BetBox: React.FC<Props> = ({
       onPlaceBet?.(amount);
     }
   }, [autoBet, isRunning, hasBet, amount, roundBetPlaced, onPlaceBet]);
+
+
 
   useEffect(() => {
     if (autoCash && hasBet && isRunning && !hasCashedOut) {
@@ -94,27 +107,7 @@ const BetBox: React.FC<Props> = ({
       }
     }
   }, [isRunning]);
-  const handleBetPress = () => {
-    if (balance < 20) {
-      setDepositVisible(true); // open Deposit Modal
-      return;
-    }
 
-    if (!hasBet && !isRunning) {
-      setHasBet(true);
-      onPlaceBet?.(amount);
-    } else if (isRunning && hasBet && !hasCashedOut) {
-      const multiplier = liveMultiplier || 1;
-      setFrozenMultiplier(multiplier);
-      onCashOut?.(amount, multiplier);
-      setShowModal(true);
-      setHasBet(false);
-      setHasCashedOut(false);
-    } else if (hasBet && !isRunning) {
-      setHasBet(false);
-      onCashOut?.(amount, 1);
-    }
-  };
 
 
   return (
@@ -170,6 +163,7 @@ const BetBox: React.FC<Props> = ({
                 value={amount.toString()}
                 keyboardType="decimal-pad"
                 onChangeText={(text) => {
+                  // Convert input to number, default to 0 if invalid
                   const parsed = parseFloat(text);
                   if (!isNaN(parsed)) {
                     setAmount(parsed);
@@ -199,8 +193,8 @@ const BetBox: React.FC<Props> = ({
               </TouchableOpacity>
             ))}
           </View>
-          <View style={styles.AutoContainer}>
-            {activeTab === "Auto" && (
+          {activeTab === "Auto" && (
+            <View style={styles.AutoContainer}>
 
               <>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -229,7 +223,7 @@ const BetBox: React.FC<Props> = ({
                         backgroundColor: "#222",
                         color: "#fff",
                         borderRadius: 8,
-                        padding: 8,
+                        height: 40,
                         textAlign: "center",
                         fontWeight: "500",
                       }}
@@ -244,10 +238,17 @@ const BetBox: React.FC<Props> = ({
 
 
               </>
-            )}
-          </View>
+            </View>
+          )}
         </View>
 
+        {depositVisible && (
+          <DepositScreen
+            onClose={() => {
+              setDepositVisible(false);
+            }}
+          />
+        )}
         {/* Right column */}
         <View style={styles.rightCol}>
           <TouchableOpacity
@@ -260,24 +261,42 @@ const BetBox: React.FC<Props> = ({
               isRunning && !hasBet && !queuedNextRound && { backgroundColor: "#3CB01F" }, // 🟩 idle mid‑round
             ]}
             onPress={() => {
-              // Pre‑round
-              if (!isRunning) {
-                if (!hasBet) {
-                  // place queued bet
-                  setHasBet(true);
-                  onPlaceBet?.(amount);
-                } else {
-                  // cancel pre‑round bet
-                  setHasBet(false);
-                  setQueuedNextRound(false);   // 🧹 add this line
-                  onCancelBet?.(amount);
-                }
+              if (!balance || balance <= 0) {
+                Alert.alert(
+                  "Hey!",
+                  "You don’t have money. Would you like to deposit now?",
+                  [
+                    {
+                      text: "Cancel",
+                      style: "cancel",
+                    },
+                    {
+                      text: "Deposit",
+                      onPress: () => setDepositVisible(true),
+                    },
+                  ]
+                );
                 return;
               }
 
-              // Live game
+
+              // Pre‑round
+              if (!isRunning) {
+                // guard against rapid tapping before state updates
+                if (hasBet) {
+                  setHasBet(false);
+                  setQueuedNextRound(false);
+                  onCancelBet?.(amount);
+                  return;
+                }
+
+                setHasBet(true);
+                onPlaceBet?.(amount);
+                return;
+              }
+
+
               if (isRunning && hasBet && !queuedNextRound) {
-                // active bet → cash out
                 const multiplier = liveMultiplier || 1;
                 setFrozenMultiplier(multiplier);
                 onCashOut?.(amount, multiplier);
@@ -300,17 +319,27 @@ const BetBox: React.FC<Props> = ({
               }
             }}
           >
-            <Text style={styles.betBtnText}>
+            <Text
+              style={[
+                styles.betBtnText,
+                (!isRunning && !hasBet) || (isRunning && !hasBet && !queuedNextRound)
+                  ? { fontSize: 19 } // Bet state
+                  : (isRunning && hasBet && !queuedNextRound)
+                    ? { fontSize: 20 } // Cash Out state
+                    : { fontSize: 13 }, // Cancel states
+              ]}
+            >
               {!isRunning && !hasBet
-                ? `Bet ${amount} INR`
+                ? `Bet\n${amount.toFixed(2)} INR`
                 : !isRunning && hasBet
                   ? `Cancel`
                   : isRunning && hasBet && !queuedNextRound
-                    ? `Cash Out ${(amount * (liveMultiplier || 1)).toFixed(2)} INR`
+                    ? `Cash Out\n${(amount * (liveMultiplier || 1)).toFixed(2)} INR`
                     : isRunning && queuedNextRound
                       ? `Cancel\n(wait for next round)`
-                      : `Bet ${amount} INR`}
+                      : `Bet\n${amount.toFixed(2)} INR`}
             </Text>
+
           </TouchableOpacity>
 
 
@@ -337,7 +366,6 @@ const BetBox: React.FC<Props> = ({
 const styles = StyleSheet.create({
 
   switchWrapper: {
-    height: 30,               // container height
     width: 45,                // container width
     borderRadius: 50,
     backgroundColor: "#111", // your custom background
@@ -353,12 +381,11 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   AutoContainer: {
-    padding: 12,
+    paddingHorizontal: 12,
     backgroundColor: "#1B1C1E",
     borderColor: "#1B1C1E",
     marginHorizontal: 5,
     borderRadius: 12,
-    marginTop: 5,
   },
   /* Header */
   headerRow: { flexDirection: "row", marginBottom: 7 },
@@ -457,10 +484,10 @@ const styles = StyleSheet.create({
     justifyContent: "center", // centers children vertically
   },
   betBtnText: {
-    color: "#fff",
+    color: "#ffffffda",
     textAlign: "center",
-    fontWeight: "700",
-    fontSize: 12,
+    fontFamily: "Slabo13px-Regular",
+    fontSize: 20,
     lineHeight: 16,
   },
 

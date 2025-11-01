@@ -19,8 +19,11 @@ import GameLimits from "./GameLimits";
 import HowToPlay from "./HowToPlay";
 import GameRules from "./GameRules";
 import ProvablyFairModal from "./ProvablyFairModal";
+import TestBetsModal from "./TestBetsModal";
+import { useSound } from "../context/SoundContext";
+import ChangeNameModal from "./ChangeNameModal";
 
-
+import { useUser } from '../context/UserContext';
 
 const { width } = Dimensions.get("window");
 
@@ -34,10 +37,9 @@ const SettingsPopout: React.FC<Props> = ({
   visible,
   onClose,
 }) => {
-  const [sound, setSound] = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(false);
   const [historyVisible, setHistoryVisible] = useState(false);
-
+  const { soundEnabled, setSoundEnabled } = useSound();
   const [music, setMusic] = useState(false);
   const [animation, setAnimation] = useState(false);
   const [gameLimitsVisible, setGameLimitsVisible] = useState(false);
@@ -46,6 +48,8 @@ const SettingsPopout: React.FC<Props> = ({
   const [provablyFairVisible, setProvablyFairVisible] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState("https://i.pravatar.cc/60"); // default avatar
   const [testBetVisible, setTestBetVisible] = useState(false); // ✅ new system‑info toggle
+  const [changeNameVisible, setChangeNameVisible] = useState(false);
+  const { username } = useUser(); // 👈 get username from context
 
   const slideAnim = useRef(new Animated.Value(width)).current; // starts off-screen right
   const [player, setPlayer] = useState<Sound | null>(null);
@@ -96,7 +100,9 @@ const SettingsPopout: React.FC<Props> = ({
           style={styles.avatar}
         />
 
-        <Text style={styles.username}>50661927_INR</Text>
+        <TouchableOpacity onPress={() => setChangeNameVisible(true)}>
+          <Text style={styles.username}>{username}</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.changeAvatarBtn}
           onPress={() => setAvatarVisible(true)}
@@ -118,9 +124,9 @@ const SettingsPopout: React.FC<Props> = ({
         <View style={styles.row}>
           <Ionicons name="volume-high-outline" size={20} color="#ccc" />
           <Text style={styles.label}>Sound</Text>
-          <Switch value={sound} onValueChange={setSound}
+          <Switch value={soundEnabled} onValueChange={setSoundEnabled}
             trackColor={{ false: "#575757ff", true: "#575757ff" }}
-            thumbColor={sound ? "#ffffff" : "#aaa"}
+            thumbColor={soundEnabled ? "#ffffff" : "#aaa"}
             ios_backgroundColor="#3e3e3e" />
         </View>
         <View style={styles.row}>
@@ -156,11 +162,14 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-          
+            onPress={() => setTestBetVisible(true)} // open modal
           >
             <Ionicons name="gift-outline" size={18} color="#ccc" />
-            <Text style={styles.menuText}>Test Bets</Text>
+            <Text style={styles.menuText}>FREE Bets</Text>
           </TouchableOpacity>
+          <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} />
+
+
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => setHistoryVisible(true)}
@@ -202,9 +211,10 @@ const SettingsPopout: React.FC<Props> = ({
       {/* Footer */}
       <View style={styles.footer}>
         <Ionicons name="home-outline" size={18} color="#ccc" />
-        <Text style={styles.footerText}>Exit</Text>
+        <Text style={styles.footerText}>Home</Text>
       </View>
       <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} />
+      <ChangeNameModal visible={changeNameVisible} onClose={() => setChangeNameVisible(false)} />
 
       <HowToPlay visible={howToPlayVisible} onClose={() => setHowToPlayVisible(false)} />
 
@@ -253,10 +263,11 @@ const styles = StyleSheet.create({
     borderWidth: 0.3,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    marginLeft: 10,
+    marginLeft: 40,
   },
   changeAvatarText: {
     color: "#a0a0a0ff",
+    fontFamily: "Arial",
     fontSize: 13,
     marginLeft: 6,
   },
@@ -264,9 +275,10 @@ const styles = StyleSheet.create({
   username: {
     flex: 1,
     color: "#fff",
-    fontWeight: "800",
-    fontSize: 16,
+    fontWeight: "600",
+    fontSize: 15,
     marginLeft: 10,
+    marginTop: 18,
   },
   changeAvatar: {
     fontSize: 12,
@@ -286,9 +298,9 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    color: "#fff",
+    color: "#b1b1b1ff",
     marginLeft: 10,
-    fontSize: 14,
+    fontSize: 13,
   },
 
   menuItem: {
@@ -299,7 +311,7 @@ const styles = StyleSheet.create({
     marginVertical: 1,
   },
   menuText: {
-    color: "#fff",
+    color: "#afafafff",
     fontSize: 14,
     marginLeft: 8,
   },
@@ -313,7 +325,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   footerText: {
-    color: "#ccc",
+    color: "#afafafff",
     marginLeft: 6,
   },
   closeBtn: {

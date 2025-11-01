@@ -1,7 +1,9 @@
+// src\components\BetHistory.tsx
+
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from "react-native";
-
-
+import { useEarnings } from "../context/EarningsContext";
+import { getCrashPoint } from "../utils/getCrashPoint";
 // Types
 export type Bet = {
   id: string;
@@ -13,15 +15,20 @@ export type Bet = {
   cashout?: number;
   isMine?: boolean;
   avatar?: string;
+  didLose?: boolean;  // <-- new field
+
+};
+export type CrashOptions = {
+  totalBetAmount: number;
+  cashouttotal: number;
 };
 
 type BetHistoryProps = {
   liveMultiplier: number;
   isRunning: boolean;
   bets: Bet[];
-  onTotalWinChange?: (total: number) => void; // ✅ new optional prop
+  onTotalWinChange?: (total: number) => void;
   setBets: React.Dispatch<React.SetStateAction<Bet[]>>;
-
 };
 
 const BetHistory: React.FC<BetHistoryProps> = ({
@@ -31,17 +38,25 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   setBets,
   onTotalWinChange,
 }) => {
+  const { totalEarnings, addEarnings, updateTotals, totalBetAmount, withdrawCash } = useEarnings();
   const [activeTab, setActiveTab] = useState<"All Bets" | "Previous" | "Top">(
     "All Bets"
   );
-
+  const [totalBetAmountState, setTotalBetAmountState] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+  const [lostBets, setLostBets] = useState<Bet[]>([]);
   const [filter, setFilter] = useState("X");
   const [period, setPeriod] = useState("Day");
-  // const [total, setMessage] = useState(1000);
+  const crash = getCrashPoint({
+    totalBetAmount: totalBetAmount,
+    cashouttotal: withdrawCash,
+
+    
+  });
   const visibleBets = bets.filter(b => b.isVisible !== false);
   const [totalWin, setTotalWin] = useState(0);
-
-  // 🔹 1️⃣ Create new fake players ONLY during wait phase
+  const userHasBet = totalBetAmount > 0;
+  // 🔹 1️⃣ Crxeate new fake players ONLY during wait phase
   useEffect(() => {
     if (!isRunning) {   // means currently waiting
       const randomBets: Bet[] = Array.from({ length: 9 }).map((_, i) => ({
@@ -64,22 +79,91 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           isMine: true,
           avatar: "https://i.pravatar.cc/40?img=0",
         };
-        return [mine, ...randomBets];
+        const all = [mine, ...randomBets];
+        const newTotalBet = all.reduce((sum, b) => sum + b.bet, 0);
+        updateTotals(all);
+        setTotalBetAmountState(newTotalBet);
+        console.log("✅ Fixed Total Bet Amount:", newTotalBet);
+        return all;
       });
     }
   }, [isRunning]);
 
+  useEffect(() => {
+    const betTotal = totalBetAmountState;
+    const cashoutTotal = withdrawCash || 0;
+    const system = betTotal - cashoutTotal;
+    //check user bet on it than this logic works 
+    // fly upto 100x 
+    //we have to show the users that u earn upto 100x if we show them that u earn only 2x or own logic then he will not interested.
+    //so show him 100x but when he bet on it, then implement our 70%-30% logic 
+    console.log("========== SYSTEM SUMMARY ==========");
+    console.log("Total Bet Amount:", betTotal);
+    console.log("Cashout Total:", cashoutTotal);
+    console.log("System Earnings (net):", system);
+    console.log("====================================");
+  }, [totalBetAmountState, withdrawCash]);
+
+  // use if else 
+  //if they bet 
+  // 70 - 30
+  //else 
+  // 100x
+
+  useEffect(() => {
+    if (isRunning) return;
+    updateTotals(bets);
+  }, [isRunning]);
+
+  useEffect(() => {
+    if (isRunning) return;
+
+    const myBet = bets.find(b => b.isMine);
+    if (!myBet) return;
+
+    if (myBet.cashout !== undefined) {
+      const profit = myBet.cashout - myBet.bet;
+      if (profit > 0) {
+        addEarnings(profit);
+      }
+    }
+  }, [bets, isRunning]);
+
+
+
+  useEffect(() => {
+    if (isRunning) return;
+    setBets(prev =>
+      prev.map(b => {
+        if (!b.isMine && b.cashout === undefined) {
+          return { ...b, didLose: true };
+        }
+        return b;
+      })
+    );
+  }, [isRunning]);
+
+
+
+  useEffect(() => {
+    const losers = bets.filter(b => b.didLose);
+    if (losers.length > 0) {
+      setLostBets(losers);
+      setShowModal(true);
+    }
+  }, [bets]);
+
   // Auto cashout simulation (only a few users)
   useEffect(() => {
-    if (!isRunning) {
-      return;
-    }
+    if (!isRunning) return;
 
     bets.forEach(b => {
       if (b.isMine || b.cashout !== undefined) return;
 
-      if (b.multiplierTarget && liveMultiplier >= b.multiplierTarget) {
-        const delay = Math.random() * 300; // random small delay
+      const willCashout = Math.random() < 0.8;
+
+      if (willCashout && b.multiplierTarget && liveMultiplier >= b.multiplierTarget) {
+        const delay = Math.random() * 300; // short random delay for realism
         setTimeout(() => {
           setBets(prev =>
             prev.map(p =>
@@ -87,22 +171,18 @@ const BetHistory: React.FC<BetHistoryProps> = ({
                 ? {
                   ...p,
                   multiplier: b.multiplierTarget,
-                  cashout: p.bet * b.multiplierTarget!, // ✅ safe non-null
+                  cashout: p.bet * b.multiplierTarget!,
                 }
                 : p
             )
           );
-
         }, delay);
       }
     });
   }, [liveMultiplier, isRunning]);
 
-  !isRunning && visibleBets.length === 0 && (
-    <Text style={{ textAlign: "center", color: "#888", marginVertical: 10 }}>
-      Waiting for next round...
-    </Text>
-  )
+
+
 
   useEffect(() => {
     if (isRunning) {
@@ -114,9 +194,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     }
   }, [isRunning]);
 
-
-
-  // 👇 Reset fake players at round start
 
 
   useEffect(() => {
@@ -413,6 +490,7 @@ const styles = StyleSheet.create({
     padding: 8,
     marginHorizontal: 5,
     marginTop: 5,
+    marginBottom: 35,
     flex: 1,
   },
   tabRow: {
@@ -689,3 +767,4 @@ const styles = StyleSheet.create({
 });
 
 export default BetHistory;
+

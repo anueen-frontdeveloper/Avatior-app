@@ -1,17 +1,16 @@
-// src/utils/system.ts
 export type PayoutResult = {
-  userGain: number;
-  systemGain: number;
-  totalWin: number;
+  userGain: number;   // what the player receives (full payout)
+  systemGain: number; // the house share — now always 0
+  totalWin: number;   // bet × multiplier
 };
 
-/** Split game payouts: user = 70 %, system = 30 % */
+/** Award 100 % of winnings to the player (no house split). */
 export const calculatePayout = (
   bet: number,
   multiplier: number
 ): PayoutResult => {
-  const totalWin = bet * multiplier;
-  const userGain = totalWin * 0.7;
-  const systemGain = totalWin * 0.3;
+  const totalWin = bet * multiplier;      // full payout (stake + profit)
+  const userGain = totalWin;
+  const systemGain = 0;
   return { userGain, systemGain, totalWin };
 };

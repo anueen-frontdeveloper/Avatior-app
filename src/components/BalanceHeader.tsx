@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { useTotalBet } from "../context/totalbetcontext";
+import { useTotalBet } from "../context/BalanceContext";
 
 // Your modals
 import SettingsModal from "./SettingsModal";
@@ -25,7 +25,7 @@ const BalanceHeader: React.FC = () => {
       {/* Right: Balance + Actions */}
       <View style={styles.rightSection}>
         <Text style={styles.balanceText}>
-          {balance.toFixed(2)} <Text style={styles.currency}>INR</Text>
+          {(balance ?? 0).toFixed(2)} <Text style={styles.currency}>INR</Text>
         </Text>
 
         <TouchableOpacity
@@ -34,29 +34,27 @@ const BalanceHeader: React.FC = () => {
           }
           accessibilityLabel="Open settings menu"
         >
-          <Ionicons name="menu" size={20} color="#c0c0c0" style={styles.icon} />
+          <Ionicons name="menu" size={18} color="#c0c0c0" style={styles.icon} />
         </TouchableOpacity>
 
 
         {/* Chat */}
         <TouchableOpacity
-          onPress={() => setActiveModal("chat")}
+          // onPress={() => setActiveModal("chat")}
           accessibilityLabel="Open chat"
         >
           <Ionicons
             name="chatbubble-outline"
-            size={20}
+            size={18}
             color="#c0c0c0"
             style={styles.icon}
           />
         </TouchableOpacity>
       </View>
 
-      {/* Render Modals */}
       <SettingsModal
         visible={activeModal === "settings"}
         onClose={() => setActiveModal(null)}
-      // could even inject a "show fairness" trigger inside settings:
 
 
       />
@@ -64,10 +62,10 @@ const BalanceHeader: React.FC = () => {
         visible={activeModal === "provablyFair"}
         onClose={() => setActiveModal(null)}
       />
-      <ChatModal
+      {/* <ChatModal
         visible={activeModal === "chat"}
         onClose={() => setActiveModal(null)}
-      />
+      /> */}
     </View>
   );
 };
@@ -86,9 +84,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   balanceText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#00B24C",
+    fontSize: 11,
+    color: "#00aa2bff",
+    fontFamily: "Barlow-Bold",
   },
   logo: {
     width: 90,

@@ -9,6 +9,7 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
+import Icon from "react-native-vector-icons/Feather";
 
 interface Props {
   visible: boolean;
@@ -16,58 +17,137 @@ interface Props {
 }
 
 const ProvablyFairModal: React.FC<Props> = ({ visible, onClose }) => {
-  const [clientSeed, setClientSeed] = useState("EtwfqfasCdX2VuWjkn");
+  const [selectedOption, setSelectedOption] = useState<"random" | "manual">("manual");
+  const [clientSeed, setClientSeed] = useState("JKHJ0DKmZ6LTRcqXE");
 
   return (
-    <Modal animationType="slide" transparent={true} visible={visible}>
+    <Modal animationType="fade" transparent visible={visible}>
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          {/* Header */}
+          {/* HEADER */}
           <View style={styles.header}>
             <Text style={styles.title}>PROVABLY FAIR SETTINGS</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.close}>X</Text>
+              <Icon name="x" size={20} color="#bbb" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.desc}>
               This game uses Provably Fair technology to determine game result.
               This tool gives you ability to change your seed and check fairness
               of the game.
             </Text>
 
-            {/* Client Seed */}
-            <Text style={styles.sectionTitle}>Client (your) seed:</Text>
-            <TouchableOpacity style={styles.option}>
-              <Text style={styles.optionText}>🔄 Random on every new game</Text>
+            <Text style={styles.link}>❓ What is Provably Fair</Text>
+
+            {/* Divider */}
+            <View style={styles.divider} />
+
+            {/* CLIENT SEED */}
+            <View style={styles.sectionHeader}>
+              <Icon name="monitor" size={16} color="#bbb" style={styles.icon} />
+              <Text style={styles.sectionTitle}>Client (your) seed:</Text>
+            </View>
+
+            <Text style={styles.helper}>
+              Round result is determined from combination of server seed and first
+              3 bets of the round.
+            </Text>
+
+            {/* RANDOM ON EVERY NEW GAME */}
+            <TouchableOpacity
+              style={[
+                styles.optionBox,
+                selectedOption === "random" ? styles.optionActive : styles.optionDisabled,
+              ]}
+              onPress={() => setSelectedOption("random")}
+            >
+              <View style={styles.optionHeader}>
+                <View
+                  style={[
+                    styles.radioOuter,
+                    selectedOption === "random" && styles.radioOuterActive,
+                  ]}
+                >
+                  {selectedOption === "random" && <View style={styles.radioDot} />}
+                </View>
+                <Text style={styles.optionText}>Random on every new game</Text>
+              </View>
+
+              <View style={styles.seedBox}>
+                <Text style={styles.seedLabel}>Current:</Text>
+                <Text style={styles.seedValue}>JKHJ0DKmZ6LTRcqXE</Text>
+                <Icon name="copy" size={14} color="#aaa" />
+              </View>
             </TouchableOpacity>
 
-            <Text style={styles.optionText}>OR</Text>
+            {/* ENTER MANUALLY */}
+            <TouchableOpacity
+              style={[
+                styles.optionBox,
+                selectedOption === "manual" ? styles.optionActive : styles.optionDisabled,
+              ]}
+              onPress={() => setSelectedOption("manual")}
+            >
+              <View style={styles.optionHeader}>
+                <View
+                  style={[
+                    styles.radioOuter,
+                    selectedOption === "manual" && styles.radioOuterActive,
+                  ]}
+                >
+                  {selectedOption === "manual" && <View style={styles.radioDot} />}
+                </View>
+                <Text style={styles.optionText}>Enter manually</Text>
+              </View>
 
-            <View style={styles.manualBox}>
-              <Text style={styles.optionText}>✍ Enter manually</Text>
-              <TextInput
-                style={styles.input}
-                value={clientSeed}
-                onChangeText={setClientSeed}
-              />
-              <TouchableOpacity style={styles.changeBtn}>
-                <Text style={styles.changeText}>CHANGE</Text>
+              <View style={styles.seedBox}>
+                <Text style={styles.seedLabel}>Current:</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    selectedOption !== "manual" && { color: "#666" },
+                  ]}
+                  editable={selectedOption === "manual"}
+                  value={clientSeed}
+                  onChangeText={setClientSeed}
+                />
+                <Icon name="copy" size={14} color="#aaa" />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.changeBtn,
+                  selectedOption === "manual"
+                    ? styles.changeActive
+                    : styles.changeDisabled,
+                ]}
+                disabled={selectedOption !== "manual"}
+              >
+                <Text
+                  style={[
+                    styles.changeText,
+                    selectedOption !== "manual" && { color: "#777" },
+                  ]}
+                >
+                  CHANGE
+                </Text>
               </TouchableOpacity>
+            </TouchableOpacity>
+            <View style={styles.divider} />
+
+            {/* SERVER SEED */}
+            <View style={styles.sectionHeader}>
+              <Icon name="server" size={16} color="#bbb" style={styles.icon} />
+              <Text style={styles.sectionTitle}>Server seed SHA256:</Text>
             </View>
 
-            {/* Server Seed */}
-            <Text style={styles.sectionTitle}>Server seed SHA256:</Text>
-            <View style={styles.seedBox}>
-              <Text style={styles.seedText}>
-                e397eabe93d44e66c7a9cf0a1c4eaa6
+            <View style={styles.serverBox}>
+              <Text style={styles.serverText}>
+                7e74ccf9e7ce38b2b6f68332331eccf7
               </Text>
             </View>
-
-            <Text style={styles.footer}>
-              You can check fairness of each bet from bets history
-            </Text>
           </ScrollView>
         </View>
       </View>
@@ -77,89 +157,178 @@ const ProvablyFairModal: React.FC<Props> = ({ visible, onClose }) => {
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 2,
+    flex: 1,
     backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
   },
   modal: {
-    width: "90%",
-    backgroundColor: "#242424ff",
+    width: "100%",
+    backgroundColor: "#1e1e1e",
     borderRadius: 10,
-    padding: 15,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
+    backgroundColor: "#272727ff",
+    height: 50,
+    borderRadius: 10,
+
+    paddingHorizontal: 15,
     alignItems: "center",
-    marginBottom: 10,
   },
   title: {
-    fontSize: 16,
-    color: "#fff",
+    color: "#a8a8a8ff",
     fontWeight: "bold",
-  },
-  close: {
-    color: "red",
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 14,
   },
   desc: {
-    color: "#ccc",
-    fontSize: 13,
-    marginBottom: 10,
+    color: "#aaa",
+    fontSize: 12,
+    paddingHorizontal: 15,
+
+    lineHeight: 18,
+    marginTop: 10,
+  },
+  link: {
+    color: "#ff3355",
+    fontSize: 12,
+    marginTop: 5,
+    paddingHorizontal: 15,
+
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#333",
+    marginVertical: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    paddingHorizontal: 15,
+
+    alignItems: "center",
+  },
+  icon: {
+    marginRight: 6,
+    paddingHorizontal: 15,
+
   },
   sectionTitle: {
     color: "#fff",
     fontWeight: "bold",
-    marginTop: 10,
+
+    fontSize: 13,
   },
-  option: {
-    padding: 8,
-    backgroundColor: "#333",
-    borderRadius: 5,
-    marginTop: 5,
+  helper: {
+    color: "#999",
+    paddingHorizontal: 15,
+
+    fontSize: 11,
+    marginBottom: 6,
+    marginTop: 2,
+  },
+  optionBox: {
+    borderRadius: 8,
+    paddingHorizontal: 15,
+
+    padding: 10,
+    marginBottom: 10,
+  },
+  optionActive: {
+    backgroundColor: "#2a2a2a",
+    marginHorizontal: 15,
+
+  },
+  optionDisabled: {
+    backgroundColor: "#181818",
+  },
+  optionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+
+    marginBottom: 8,
+  },
+  radioOuter: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+
+    borderWidth: 2,
+    borderColor: "#555",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 6,
+  },
+  radioOuterActive: {
+    borderColor: "#00ff66",
+  },
+  radioDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#00ff66",
   },
   optionText: {
     color: "#fff",
+    fontSize: 13,
   },
-  manualBox: {
-    marginTop: 10,
+  seedBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#0f0f0f",
+
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  seedLabel: {
+    color: "#aaa",
+    fontSize: 11,
+    marginRight: 4,
+  },
+  seedValue: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "monospace",
   },
   input: {
-    backgroundColor: "#222",
+    flex: 1,
     color: "#fff",
-    borderWidth: 1,
-    borderColor: "#555",
-    borderRadius: 5,
-    padding: 5,
-    marginTop: 5,
+    fontSize: 12,
+    fontFamily: "monospace",
   },
   changeBtn: {
     marginTop: 8,
-    backgroundColor: "#0f0",
-    padding: 8,
     borderRadius: 5,
+    paddingVertical: 6,
     alignItems: "center",
+  },
+  changeActive: {
+    backgroundColor: "#00ff66",
+  },
+  changeDisabled: {
+    backgroundColor: "#333",
   },
   changeText: {
     color: "#000",
     fontWeight: "bold",
+    fontSize: 12,
   },
-  seedBox: {
-    backgroundColor: "#333",
+  serverBox: {
+    backgroundColor: "#0f0f0f",
+    borderRadius: 6,
     padding: 8,
-    borderRadius: 5,
-    marginTop: 5,
+    marginVertical: 15,
+    marginHorizontal: 15,
+    marginTop: 6,
   },
-  seedText: {
+  serverText: {
     color: "#fff",
+    fontFamily: "monospace",
+    
     fontSize: 12,
-  },
-  footer: {
-    color: "#999",
-    fontSize: 12,
-    marginTop: 10,
   },
 });
 

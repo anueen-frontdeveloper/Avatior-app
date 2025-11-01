@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     header: {
-        backgroundColor: "#d4af37", // gold header
+        backgroundColor: "#ffc400ff",
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
@@ -117,8 +117,9 @@ const styles = StyleSheet.create({
     youtubeBox: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#d4af37",
         padding: 10,
+        backgroundColor: "#ff0000",
+        
         borderRadius: 8,
         justifyContent: "center",
         marginVertical: 10,
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     stepContainer: {
-        backgroundColor: "#d4af37", // gold background for steps
+        backgroundColor: "#ffc400ff",
         paddingVertical: 20,
         paddingHorizontal: 15,
         borderBottomLeftRadius: 10,
