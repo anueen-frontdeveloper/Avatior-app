@@ -274,7 +274,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
               {/* Right side (total win) */}
               <View style={styles.infoBoxRight}>
-                <Text style={styles.total}>₹{totalWin.toFixed(2)}</Text>
+                <Text style={styles.total}>{totalWin.toFixed(2)}</Text>
                 <Text style={styles.totalLabel}>Total win INR</Text>
               </View>
             </View>
@@ -705,14 +705,13 @@ const styles = StyleSheet.create({
   infoBox: {
     borderRadius: 15,
     backgroundColor: "#111",
-    padding: 12,
+    padding: 9,
   },
 
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6, // space before progress bar
   },
 
   infoBoxLeft: {
@@ -725,19 +724,19 @@ const styles = StyleSheet.create({
   },
 
   avatar: {
-    width: 24,
-    height: 24,
+    width: 20,
+    height: 20,
     borderRadius: 12,
-    marginLeft: -6,
+    marginLeft: -10,
     borderWidth: 1,
     borderColor: "#2c8013ff",
   },
 
-  counter: { color: "#aaa", fontSize: 12 },
+  counter: { color: "#aaa", fontSize: 10 },
 
   infoBoxRight: { alignItems: "flex-end" },
-  total: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  totalLabel: { color: "#aaa", fontSize: 12 },
+  total: { color: "#fff", fontSize: 13, fontWeight: "bold" },
+  totalLabel: { color: "#bbb", fontSize: 12 },
 
   progressWrapper: {
     width: "100%",
@@ -745,6 +744,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#222",
     borderRadius: 6,
     overflow: "hidden",
+    marginTop: 4,
+    marginBottom: 2,
   },
   progressBar: { height: "100%", backgroundColor: "#3F7C08" },
   roundResultBox: {

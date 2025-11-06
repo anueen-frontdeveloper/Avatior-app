@@ -13,14 +13,15 @@ import { EarningsProvider } from "../context/EarningsContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 function getWeightedMultiplier() {
-  const roll = Math.random() * 100;
+  const roll = Math.random() * 100; // 0–100
 
-  if (roll < 40) return `${(Math.random() * (5 - 1) + 1).toFixed(2)}x`;
-  if (roll < 70) return `${(Math.random() * (10 - 5) + 5).toFixed(2)}x`;
-  if (roll < 90) return `${(Math.random() * (15 - 10) + 10).toFixed(2)}x`;
-  if (roll < 100) return `${(Math.random() * (30 - 15) + 15).toFixed(2)}x`;
-  if (roll < 105) return `${(Math.random() * (100 - 30) + 30).toFixed(2)}x`;
-  return `${(Math.random() * (1000 - 100) + 100).toFixed(2)}x`;
+  // 90% chance: normal range 1x–2x
+  if (roll < 90) {
+    return `${(Math.random() * (2 - 1) + 1).toFixed(2)}x`;
+  }
+
+  // 10% chance: lucky range 2x–50x
+  return `${(Math.random() * (500 - 2) + 2).toFixed(2)}x`;
 }
 
 

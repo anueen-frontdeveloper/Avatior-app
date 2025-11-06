@@ -162,29 +162,29 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => setTestBetVisible(true)} // open modal
+            // onPress={() => setTestBetVisible(true)} // open modal
           >
             <Ionicons name="gift-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>FREE Bets</Text>
           </TouchableOpacity>
-          <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} />
+          {/* <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} /> */}
 
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => setHistoryVisible(true)}
+            // onPress={() => setHistoryVisible(true)}
           >            <Ionicons name="document-text-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>My Bet History</Text>
           </TouchableOpacity>
-          <BetHistoryModal
+          {/* <BetHistoryModal
             visible={historyVisible}
             onClose={() => setHistoryVisible(false)}
-          />
+          /> */}
 
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => setGameLimitsVisible(true)}
+            // onPress={() => setGameLimitsVisible(true)}
           >
             <Ionicons name="cash-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>Game Limits</Text>
@@ -213,14 +213,14 @@ const SettingsPopout: React.FC<Props> = ({
         <Ionicons name="home-outline" size={18} color="#ccc" />
         <Text style={styles.footerText}>Home</Text>
       </View>
-      <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} />
+      {/* <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} /> */}
       <ChangeNameModal visible={changeNameVisible} onClose={() => setChangeNameVisible(false)} />
 
       <HowToPlay visible={howToPlayVisible} onClose={() => setHowToPlayVisible(false)} />
 
       <GameRules visible={gameRulesVisible} onClose={() => setGameRulesVisible(false)} />
 
-      <ProvablyFairModal visible={provablyFairVisible} onClose={() => setProvablyFairVisible(false)} />
+      {/* <ProvablyFairModal visible={provablyFairVisible} onClose={() => setProvablyFairVisible(false)} /> */}
 
       {/* Close button */}
       <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
@@ -276,7 +276,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#fff",
     fontWeight: "600",
-    fontSize: 15,
     marginLeft: 10,
     marginTop: 18,
   },

@@ -129,10 +129,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   text: {
-    fontSize: 10.5,
-    fontWeight: "200",
+    fontSize: 11.5,
     marginRight: 14,
-    fontFamily: "",
+    fontFamily: "Slabo13px-Regular",
   },
   moreBtn: {
     width: 32,

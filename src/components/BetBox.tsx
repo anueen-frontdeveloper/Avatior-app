@@ -254,11 +254,11 @@ const BetBox: React.FC<Props> = ({
           <TouchableOpacity
             style={[
               styles.betBtn,
-              !isRunning && !hasBet && { backgroundColor: "#3CB01F" }, // 🟩 ready
+              !isRunning && !hasBet && { backgroundColor: "#39b613ff" }, // 🟩 ready
               !isRunning && hasBet && { backgroundColor: "#ff0000ff" }, // 🔴 cancel pre‑round
               isRunning && hasBet && !queuedNextRound && { backgroundColor: "#f59032ff" }, // 🟠 active
               isRunning && queuedNextRound && { backgroundColor: "#ff0000ff" }, // 🔴 queued next
-              isRunning && !hasBet && !queuedNextRound && { backgroundColor: "#3CB01F" }, // 🟩 idle mid‑round
+              isRunning && !hasBet && !queuedNextRound && { backgroundColor: "#39b613ff" }, // 🟩 idle mid‑round
             ]}
             onPress={() => {
               if (!balance || balance <= 0) {
@@ -329,15 +329,34 @@ const BetBox: React.FC<Props> = ({
                     : { fontSize: 13 }, // Cancel states
               ]}
             >
-              {!isRunning && !hasBet
-                ? `Bet\n${amount.toFixed(2)} INR`
-                : !isRunning && hasBet
-                  ? `Cancel`
-                  : isRunning && hasBet && !queuedNextRound
-                    ? `Cash Out\n${(amount * (liveMultiplier || 1)).toFixed(2)} INR`
-                    : isRunning && queuedNextRound
-                      ? `Cancel\n(wait for next round)`
-                      : `Bet\n${amount.toFixed(2)} INR`}
+              <View style={{ alignItems: 'center' }}>
+                {!isRunning && !hasBet ? (
+                  <>
+                    <Text style={styles.action}>Bet</Text>
+                    <Text style={styles.amount}>{amount.toFixed(2)} INR</Text>
+                  </>
+                ) : !isRunning && hasBet ? (
+                  <Text style={styles.action}>Cancel</Text>
+                ) : isRunning && hasBet && !queuedNextRound ? (
+                  <>
+                    <Text style={styles.action}>Cash Out</Text>
+                    <Text style={styles.amount}>
+                      {(amount * (liveMultiplier || 1)).toFixed(2)} INR
+                    </Text>
+                  </>
+                ) : isRunning && queuedNextRound ? (
+                  <>
+                    <Text style={styles.action}>Cancel</Text>
+                    <Text style={styles.amount}>(wait for next round)</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.action}>Bet</Text>
+                    <Text style={styles.amount}>{amount.toFixed(2)} INR</Text>
+                  </>
+                )}
+              </View>
+
             </Text>
 
           </TouchableOpacity>
@@ -364,7 +383,15 @@ const BetBox: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-
+  action: {
+    fontSize: 20,
+    color: '#ddd',
+    fontFamily: "Barlow-Medium"
+  },
+  amount: {
+    fontSize: 20,
+    color: '#ddd',
+  },
   switchWrapper: {
     width: 45,                // container width
     borderRadius: 50,
@@ -474,9 +501,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   betBtn: {
-    backgroundColor: "#3CB01F",
     borderRadius: 8,
-    width: 150,
+    width: 170,
     height: 85,
     borderColor: "#fff",
     borderWidth: 0.5,
@@ -486,7 +512,7 @@ const styles = StyleSheet.create({
   betBtnText: {
     color: "#ffffffda",
     textAlign: "center",
-    fontFamily: "Slabo13px-Regular",
+    fontFamily: "Montserrat-Regular",
     fontSize: 20,
     lineHeight: 16,
   },
