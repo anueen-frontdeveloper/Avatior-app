@@ -49,27 +49,14 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>AnekTelugu-VariableFont_wdth,wght.ttf</string>
-		<string>Barlow-Black.ttf</string>
-		<string>Barlow-BlackItalic.ttf</string>
-		<string>Barlow-Bold.ttf</string>
-		<string>Barlow-BoldItalic.ttf</string>
-		<string>Barlow-ExtraBold.ttf</string>
-		<string>Barlow-ExtraBoldItalic.ttf</string>
-		<string>Barlow-ExtraLight.ttf</string>
-		<string>Barlow-ExtraLightItalic.ttf</string>
-		<string>Barlow-Italic.ttf</string>
-		<string>Barlow-Light.ttf</string>
-		<string>Barlow-LightItalic.ttf</string>
-		<string>Barlow-Medium.ttf</string>
-		<string>Barlow-MediumItalic.ttf</string>
-		<string>Barlow-Regular.ttf</string>
-		<string>Barlow-SemiBold.ttf</string>
-		<string>Barlow-SemiBoldItalic.ttf</string>
-		<string>Barlow-Thin.ttf</string>
-		<string>Barlow-ThinItalic.ttf</string>
-		<string>Oswald-VariableFont_wght.ttf</string>
-		<string>Slabo13px-Regular.ttf</string>
+		<string>StackSansText-Regular.ttf</string>
+		<string>Poppins-Regular.ttf</string>
+		<string>Ramabhadra-Regular.ttf</string>
+		<string>CrimsonPro-Bold.ttf</string>
+		<string>ZalandoSansSemiExpanded-Medium.ttf</string>
+		<string>Anton-Regular.ttf</string>
+		<string>NotoSansSyriacWestern-VariableFont_wght.ttf</string>
+		<string>Roboto-VariableFont_wdth,wght.ttf</string>
 	</array>
 </dict>
 </plist>

@@ -357,11 +357,11 @@ export default function BalloonThread({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#000",
+    backgroundColor: "#292929ff",
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 215,
+    minHeight: 212,
     overflow: "hidden",
     borderWidth: 0.5,
     borderColor: "#3b3b3b",

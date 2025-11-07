@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   tab: {
-    paddingVertical: 2,
+    paddingVertical: 1,
     paddingHorizontal: 30,
     borderRadius: 16,
   },
@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   ,
   activeTab: { backgroundColor: "#2C2C2E" },
   tabText: { color: "#888", fontWeight: "500" },
-  activeTabText: { color: "#fff", fontWeight: "700" },
+  activeTabText: { color: "#fff", fontFamily: "Ramabhadra-Regular", },
 
   /* Main layout */
   mainRow: { flexDirection: "row" },

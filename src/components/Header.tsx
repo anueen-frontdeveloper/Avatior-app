@@ -12,22 +12,33 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function Header() {
   const [walletVisible, setWalletVisible] = useState(false);
+  const [isYellow, setIsYellow] = useState(false);
+ 
   const { balance } = useTotalBet();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   return (
     <View style={styles.container}>
       {/* Left Section */}
       <View style={styles.left}>
-        <Ionicons name="arrow-back" size={22} color="white" />
+        <Ionicons name="chevron-back-outline" size={18} color="#c7c7c7ff" />
         <Text style={styles.backText}>Back</Text>
       </View>
 
       <Text style={[styles.centerText, { textAlign: 'right' }]}>
         <Text style={{ color: '#a0a0a0ff' }}>INR
-          <Icon name="keyboard-arrow-down" size={14} color="#a0a0a0ff" style={{ marginLeft: 2 }} />
+          <Icon
+            name="keyboard-arrow-down"
+            size={14}
+            color="#a0a0a0ff"
+            style={{
+              marginLeft: 2,
+              alignSelf: 'center', // centers vertically in parent
+              paddingTop: 0,       // remove this
+            }}
+          />
 
           {'\n'} </Text>
-        <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'Barlow-Bold' }}>
+        <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'CrimsonPro-Bold' }}>
           {(balance ?? 0).toFixed(2)}
         </Text>
       </Text>
@@ -54,9 +65,17 @@ export default function Header() {
             />
           )}
         </Modal>
-        <View style={styles.starWrapper}>
-          <FontAwesome name="star" size={18} color="#fff" />
-        </View>
+        <TouchableOpacity
+          style={styles.starWrapper}
+          onPress={() => setIsYellow(!isYellow)}  // toggle color
+          activeOpacity={0.7}
+        >
+          <FontAwesome
+            name="star"
+            size={18}
+            color={isYellow ? '#FFD700' : '#FFFFFF'}  // yellow or white
+          />
+        </TouchableOpacity>
       </View>
 
 
@@ -73,8 +92,8 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     justifyContent: "space-between",
     paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: "#000", // Header background
+    paddingVertical: 15,
+    backgroundColor: "#141414ff", // Header background
   },
   left: {
     flexDirection: "row",
@@ -82,12 +101,15 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: "white",
-    fontSize: 16,
-    marginLeft: 5,
+    fontSize: 12,
+    fontWeight: "700",
+    marginLeft: 10,
+    fontFamily: "StackSansText-Regular",
   },
   centerText: {
-    color: "#b1b1b1ff",
+    color: "#afafafff",
     fontSize: 11,
+    fontFamily: "Poppins-Regular",
     marginLeft: 88,
   },
   right: {
@@ -104,7 +126,7 @@ const styles = StyleSheet.create({
   depositText: {
     color: "white",
     fontSize: 12,
-    fontFamily: "Barlow-Bold", // 👈 use loaded custom font
+    fontFamily: "Ramabhadra-Regular", // 👈 use loaded custom font
   },
 
 

@@ -150,7 +150,7 @@ const HomeScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
+  container: { flex: 1, backgroundColor: "#111111ff" },
   adminBtn: {
     position: "absolute",
     right: 20,

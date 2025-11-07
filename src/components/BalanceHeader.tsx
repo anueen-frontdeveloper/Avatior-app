@@ -34,7 +34,7 @@ const BalanceHeader: React.FC = () => {
           }
           accessibilityLabel="Open settings menu"
         >
-          <Ionicons name="menu" size={18} color="#c0c0c0" style={styles.icon} />
+          <Ionicons name="menu" size={16} color="#696969ff" style={styles.icon} />
         </TouchableOpacity>
 
 
@@ -45,8 +45,8 @@ const BalanceHeader: React.FC = () => {
         >
           <Ionicons
             name="chatbubble-outline"
-            size={18}
-            color="#c0c0c0"
+            size={16}
+            color="#696969ff"
             style={styles.icon}
           />
         </TouchableOpacity>
@@ -76,27 +76,29 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#1c1c1c",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 2,
+    paddingVertical: 7.4, 
   },
   rightSection: {
     flexDirection: "row",
     alignItems: "center",
   },
   balanceText: {
-    fontSize: 11,
-    color: "#00aa2bff",
-    fontFamily: "Barlow-Bold",
+    fontSize: 12,
+    color: "#26ca34ff",
+    fontFamily: "ZalandoSansSemiExpanded-Medium",
   },
   logo: {
     width: 90,
     height: 24,
   },
   currency: {
-    color: "#c0c0c0",
+    color: "#949494ff",
+    fontFamily: "CrimsonPro-Regular",
   },
   icon: {
     marginLeft: 12,
+    marginRight: 12,
   },
 });
 
