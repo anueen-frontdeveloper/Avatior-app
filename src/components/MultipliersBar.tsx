@@ -36,9 +36,9 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
 
 
   const getColor = (num: number) => {
-    if (num > 10) return "#9D1F80"; // Pink
-    if (num > 2) return "#7B31E0";  // Purple
-    return "#369CD4";               // Blue
+    if (num > 10) return "#a72187ff"; // Pink
+    if (num > 2) return "#7b31e4ff";  // Purple
+    return "#3aa7e2ff";               // Blue
   };
 
   // Use real multipliers if they exist, otherwise use our stable initial placeholders.

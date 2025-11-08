@@ -43,7 +43,6 @@ const BetBox: React.FC<Props> = ({
   const [hasBet, setHasBet] = useState(false);
   const [queuedNextRound, setQueuedNextRound] = useState(false);
   const { balance } = useTotalBet();
-  const [betBoxes, setBetBoxes] = useState([1]); // start with 1 box
 
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [frozenMultiplier, setFrozenMultiplier] = useState(1);
@@ -133,13 +132,13 @@ const BetBox: React.FC<Props> = ({
 
         {onAdd && (
           <TouchableOpacity style={styles.iconButton} onPress={onAdd}>
-            <MaterialCommunityIcons name="layers-plus" size={19} color="#00f700b4" />
+            <MaterialCommunityIcons name="layers-plus" size={22} color="#00f700b4" />
           </TouchableOpacity>
         )}
 
         {onRemove && (
           <TouchableOpacity style={styles.iconButton} onPress={() => onRemove(id)}>
-            <MaterialCommunityIcons name="inbox-remove" size={19} color="#dfdfdfff" />
+            <MaterialCommunityIcons name="layers-remove" size={22} color="#ff4444" />
           </TouchableOpacity>
         )}
 
@@ -160,16 +159,20 @@ const BetBox: React.FC<Props> = ({
 
             <View style={styles.amountBox}>
               <TextInput
-                style={styles.amountText}
+                style={[styles.amountText, { textAlign: "center" }]}
                 value={amount.toString()}
                 keyboardType="decimal-pad"
                 onChangeText={(text) => {
+                  // Convert input to number, default to 0 if invalid
                   const parsed = parseFloat(text);
-                  setAmount(!isNaN(parsed) ? parsed : 0);
+                  if (!isNaN(parsed)) {
+                    setAmount(parsed);
+                  } else {
+                    setAmount(0);
+                  }
                 }}
               />
             </View>
-
 
             <TouchableOpacity
               style={styles.roundBtn}
@@ -200,7 +203,7 @@ const BetBox: React.FC<Props> = ({
                     <Switch
                       value={autoBet}
                       onValueChange={setAutoBet}
-                      thumbColor={autoBet ? "#f4f3f4" : "#707070ff"}
+                      thumbColor={autoBet ? "#3CB01F" : "#f4f3f4"}
                       trackColor={{ false: "#111", true: "#111" }} // this controls the track colors
                     />
                   </View>
@@ -210,7 +213,7 @@ const BetBox: React.FC<Props> = ({
                     <Switch
                       value={autoCash}
                       onValueChange={setAutoCash}
-                      thumbColor={autoCash ? "#f4f3f4" : "#707070ff"}
+                      thumbColor={autoCash ? "#3CB01F" : "#f4f3f4"}
                       trackColor={{ false: "#111", true: "#111" }} // this controls the track colors
                     />
                   </View>
@@ -220,13 +223,9 @@ const BetBox: React.FC<Props> = ({
                         backgroundColor: "#222",
                         color: "#fff",
                         borderRadius: 8,
-                        height: 35,
+                        height: 40,
                         textAlign: "center",
-                        fontFamily: "ZalandoSansSemiExpanded-Mediums",
-                        marginTop: 5,
-
-                        paddingHorizontal: 8,
-                        fontSize: 10,
+                        fontWeight: "500",
                       }}
                       keyboardType="decimal-pad"
                       value={autoCashMultiplier}
@@ -394,11 +393,11 @@ const styles = StyleSheet.create({
     color: '#ddd',
   },
   switchWrapper: {
-    width: 50,                // container width
-    marginTop: 10,
+    width: 45,                // container width
     borderRadius: 50,
     backgroundColor: "#111", // your custom background
     justifyContent: "center",
+    marginHorizontal: 12,
   },
   container: {
     padding: 8,
@@ -410,26 +409,23 @@ const styles = StyleSheet.create({
   },
   AutoContainer: {
     paddingHorizontal: 12,
-    marginHorizontal: 0,
-    borderWidth: 0.5,
-    borderTopColor: "#000000ff",
-    width: 330,
-    marginTop: 10,
+    backgroundColor: "#1B1C1E",
     borderColor: "#1B1C1E",
+    marginHorizontal: 5,
+    borderRadius: 12,
   },
   /* Header */
   headerRow: { flexDirection: "row", marginBottom: 7 },
   headerTabs: {
     flexDirection: "row",
-    marginLeft: 70,
-    height: 30,
+    marginLeft: 82,
     backgroundColor: "#111",
     borderRadius: 20,
     padding: 4,
   },
   tab: {
     paddingVertical: 1,
-    paddingHorizontal: 35,
+    paddingHorizontal: 30,
     borderRadius: 16,
   },
   switch: { height: 20, backgroundColor: "#89a6e0ff", borderRadius: 50, },
@@ -443,14 +439,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#4e4e4eff"
   }
   ,
-  activeTab: {
-    backgroundColor: "#2C2C2E", paddingVertical: 1, paddingHorizontal: 40
-  },
-  tabText: { color: "#636363ff", fontFamily: "Roboto-VariableFont_wdth,wght", fontSize: 11, marginTop: 2 },
-  activeTabText: { color: "#fff", fontFamily: "Roboto-VariableFont_wdth,wght", },
+  activeTab: { backgroundColor: "#2C2C2E" },
+  tabText: { color: "#888", fontWeight: "500" },
+  activeTabText: { color: "#fff", fontFamily: "Ramabhadra-Regular", },
 
   /* Main layout */
-  mainRow: { flexDirection: "row", backgroundColor: "#1B1C1E", },
+  mainRow: { flexDirection: "row" },
   leftCol: { flex: 1, marginRight: 10 },
   rightCol: { width: 175, justifyContent: "flex-start" },
 
@@ -461,7 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     backgroundColor: "#111",
     borderRadius: 16,
-    height: 30,
+    height: 35,
   },
   roundBtn: {
     width: 23,
@@ -472,14 +466,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  roundBtnText: { color: "#fff", fontSize: 14, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
+  roundBtnText: { color: "#fff", fontSize: 14, fontWeight: "200" },
   amountBox: {
     flex: 1,
     borderRadius: 8,
-    paddingVertical: -2,
+    paddingVertical: 1,
     alignItems: "center",
+
   },
-  amountText: { color: "#fff", marginTop: -5, fontSize: 10, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
+  amountText: { color: "#fff", fontSize: 10, fontWeight: "300" },
 
   /* Presets grid */
   presetsContainer: {
@@ -491,11 +486,10 @@ const styles = StyleSheet.create({
     width: "48%",
     backgroundColor: "#111",
     borderRadius: 15,
-    height: 20,
     alignItems: "center",
     marginBottom: 4,
   },
-  presetText: { color: "#6d6c6cff", fontSize: 12, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
+  presetText: { color: "#6d6c6cff", fontFamily: "Barlow-Bold", },
 
   /* Right column */
   betBtnSubText: {

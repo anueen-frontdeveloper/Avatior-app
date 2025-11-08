@@ -60,7 +60,7 @@ export default function BalloonThread({
 
   const sway = useSharedValue(0);
 
-  const [isRunning, setIsRunning] = useState(true);
+  const [isRunning, setIsRunning] = useState(false);
   const [showCrash, setShowCrash] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const { soundEnabled } = useSound();
@@ -137,11 +137,15 @@ export default function BalloonThread({
       textShadowOffset: { width: 3, height: 0 },
     };
   });
-
+  useEffect(() => {
+    // start the game automatically after a short delay
+    const t = setTimeout(() => setIsRunning(true), 300);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!isRunning) return;
-
+    
     multiplier.value = 1;
 
     playStartSound(() => {
@@ -223,7 +227,6 @@ export default function BalloonThread({
       isCrashing.value = false;
       crashPoint.value = getCrashPoint(({ totalBetAmount: 1000, cashouttotal: 200 }));
 
-      // Reset multiplier BEFORE next round
       multiplier.value = 1;
 
       cx.value = points[0].x;

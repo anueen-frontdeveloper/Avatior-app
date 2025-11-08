@@ -1,4 +1,4 @@
-// src/components/HomeScreen.tsx                                                                                                                     
+// ✅ HomeScreen.tsx
 import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import Header from "./Header";
@@ -10,115 +10,62 @@ import BetHistory, { Bet } from "./BetHistory";
 import { calculatePayout } from "../utils/system";
 import { useTotalBet } from "../context/BalanceContext";
 import { EarningsProvider } from "../context/EarningsContext";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-function getWeightedMultiplier() {
-  const roll = Math.random() * 100; // 0–100
-
-  // 90% chance: normal range 1x–2x
-  if (roll < 90) {
-    return `${(Math.random() * (2 - 1) + 1).toFixed(2)}x`;
-  }
-
-  // 10% chance: lucky range 2x–50x
-  return `${(Math.random() * (500 - 2) + 2).toFixed(2)}x`;
-}
-
 
 const HomeScreen: React.FC = () => {
   const { balance, setBalance } = useTotalBet();
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
-  const [systemEarning, setSystemEarning] = useState(0);
   const [bets, setBets] = useState<Bet[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [liveMultiplier, setLiveMultiplier] = useState(1);
-  const [totalWinUser, setTotalWinUser] = useState(0);
-  const [multipliers, setMultipliers] = useState<string[]>(
-    Array.from({ length: 6 }, () => getWeightedMultiplier())
-  );
-  useEffect(() => {
-    const loadBalance = async () => {
-      if (balance === null) {
-        // could fetch from API or AsyncStorage
-        const fetched = 0; // dynamic value later
-        setBalance(fetched);
-      }
-    };
-    loadBalance();
-  }, [balance]);
+  const [multipliers, setMultipliers] = useState<string[]>([]);
 
-  // --- Game events --------------------------------------------------------
-  const handleCrash = (val: number) => {
-    setMultipliers((prev) => [`${val.toFixed(2)}x`, ...prev].slice(0, 20));
+  // --- add bet box (max 2 only)
+  const addBetBox = () => {
+    if (betBoxes.length < 2) {
+      setBetBoxes((prev) => [...prev, Date.now()]);
+    }
   };
+
+  // --- remove bet box
+  const removeBetBox = (id: number) => {
+    setBetBoxes((prev) => prev.filter((boxId) => boxId !== id));
+  };
+
+  const handlePlaceBet = (amount: number) => {
+    if ((balance ?? 0) >= amount) {
+      setBalance((prev) => (prev ?? 0) - amount);
+      
+    }
+  };
+
+  const handleCashOut = (amount: number, multiplier: number) => {
+    const { userGain } = calculatePayout(amount, multiplier);
+    setBalance((prev) => (prev ?? 0) + userGain);
+  };
+
   const handleCancelBet = (amount: number) => {
     setBalance((prev) => (prev ?? 0) + amount);
   };
 
-  const handleUpdate = (val: number, running: boolean) => {
-    setLiveMultiplier(val);
-    setIsRunning(running);
-  };
-
-  // --- Betting ------------------------------------------------------------
-  const handlePlaceBet = (amount: number) => {
-    const currentBalance = balance ?? 0;       // fallback to 0 if null
-    if (currentBalance >= amount) {
-      setBalance((prev) => (prev ?? 0) - amount);
-      setBets((prev) =>
-        prev.map((b) =>
-          b.user === "You"
-            ? { ...b, bet: amount, isVisible: true }
-            : b
-        )
-      );
-    }
-  };
-  const handleCashOut = (amount: number, multiplier: number) => {
-    const { userGain, systemGain } = calculatePayout(amount, multiplier);
-
-    setBalance((prev) => (prev ?? 0) + userGain);
-    setSystemEarning((prev) => prev + systemGain); // 30 % to system
-
-    // Update "You" bet in BetHistory
-    setBets((prev) =>
-      prev.map((b) =>
-        b.isMine && b.cashout === undefined
-          ? { ...b, multiplier: liveMultiplier, cashout: b.bet * liveMultiplier }
-          : b
-      )
-    );
-
-    console.log(`Round: user ₹${userGain.toFixed(2)}, system ₹${systemGain.toFixed(2)}`);
-  };
-
-  useEffect(() => {
-    setIsRunning(true);
-  }, []);
-  const addBetBox = () => {
-    if (betBoxes.length < 2) setBetBoxes((prev) => [...prev, Date.now()]);
-  };
-
-  const removeBetBox = (id: number) =>
-    setBetBoxes((prev) => prev.filter((boxId) => boxId !== id));
-
-  // --- Rendering ----------------------------------------------------------
   return (
     <EarningsProvider>
-
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         <ScrollView
           style={styles.container}
           contentContainerStyle={{ paddingBottom: 10 }}
           stickyHeaderIndices={[0]}
-          nestedScrollEnabled={true}
         >
-
           <Header />
           <BalanceHeader />
           <MultipliersBar multipliers={multipliers} />
-          <GameBoard bets={bets} onCrash={handleCrash} onUpdate={handleUpdate} />
-
+          <GameBoard
+            bets={bets}
+            onUpdate={(val: number, running: boolean) => {
+              setLiveMultiplier(val);
+              setIsRunning(running);
+            }}
+          />
+          {/* ✅ Dynamically render up to two BetBoxes */}
           {betBoxes.map((id, index) => (
             <BetBox
               key={id}
@@ -128,20 +75,17 @@ const HomeScreen: React.FC = () => {
               isRunning={isRunning}
               onPlaceBet={handlePlaceBet}
               onCashOut={handleCashOut}
-              onCancelBet={handleCancelBet}   // ✅ refund support
-
-              onAdd={index === 0 ? addBetBox : undefined}
-              onRemove={index > 0 ? removeBetBox : undefined}
+              onCancelBet={handleCancelBet}
+              onAdd={index === 0 && betBoxes.length < 2 ? addBetBox : undefined} // ✅ show Add only on 1st
+              onRemove={index === 1 ? () => removeBetBox(id) : undefined}       // ✅ show Remove only on 2nd
             />
           ))}
 
-
           <BetHistory
-            onTotalWinChange={setTotalWinUser}
             liveMultiplier={liveMultiplier}
             isRunning={isRunning}
-            bets={bets}       // pass the bets state
-            setBets={setBets} // pass the setter 
+            bets={bets}
+            setBets={setBets}
           />
         </ScrollView>
       </View>
@@ -150,18 +94,7 @@ const HomeScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#111111ff" },
-  adminBtn: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    backgroundColor: "#00b24c",
-    borderRadius: 50,
-    padding: 14,
-    elevation: 4,
-  },
+  container: { flex: 1, backgroundColor: "#111" },
 });
 
 export default HomeScreen;
-
-//
