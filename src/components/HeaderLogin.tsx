@@ -1,21 +1,30 @@
-//src/components/Header.tsx
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"; // back icon
-import FontAwesome from "react-native-vector-icons/FontAwesome"; // star icon
+import Ionicons from "react-native-vector-icons/Ionicons"; 
+import FontAwesome from "react-native-vector-icons/FontAwesome"; 
 import DepositModal from "./Deposit/DepositModal";
-type Props = { balance: number; onPressTestBet?: () => void; };
 import { useTotalBet } from "../context/BalanceContext";
 import DepositWallet from "./Deposit/DepositWallet";
 import type { PaymentMethod } from "./Deposit/DepositModal";
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import Icon from "react-native-vector-icons/MaterialIcons";
 
 export default function Header() {
   const [walletVisible, setWalletVisible] = useState(false);
   const [isYellow, setIsYellow] = useState(false);
- 
-  const { balance } = useTotalBet();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+
+  const { balance } = useTotalBet();
+
+  const handleLogin = () => {
+    console.log("Login button pressed");
+    // navigation.navigate('Login') or show modal
+  };
+
+  const handleRegister = () => {
+    console.log("Register button pressed");
+    // navigation.navigate('Register') or show modal
+  };
+
   return (
     <View style={styles.container}>
       {/* Left Section */}
@@ -24,66 +33,62 @@ export default function Header() {
         <Text style={styles.backText}>Back</Text>
       </View>
 
-      <Text style={[styles.centerText, { textAlign: 'right' }]}>
-        <Text style={{ color: '#a0a0a0ff' }}>INR
+      {/* Center Balance */}
+      <Text style={[styles.centerText, { textAlign: "right" }]}>
+        <Text style={{ color: "#a0a0a0ff" }}>
+          INR
           <Icon
             name="keyboard-arrow-down"
             size={14}
             color="#a0a0a0ff"
             style={{
               marginLeft: 2,
-              alignSelf: 'center', // centers vertically in parent
-              paddingTop: 0,       // remove this
+              alignSelf: "center",
             }}
           />
-
-          {'\n'} </Text>
-        <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'CrimsonPro-Bold' }}>
+          {"\n"}
+        </Text>
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 11,
+            fontFamily: "CrimsonPro-Bold",
+          }}
+        >
           {(balance ?? 0).toFixed(2)}
         </Text>
       </Text>
 
-
       {/* Right Section */}
       <View style={styles.right}>
-        <TouchableOpacity style={styles.depositBtn} onPress={() => setWalletVisible(true)}>
-
-          <Text style={styles.depositText}>Deposit</Text>
+        {/* Login Button */}
+        <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
+          <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
-        <Modal visible={walletVisible} animationType="slide" transparent>
-          {selectedMethod ? (
-            <DepositWallet
-              method={selectedMethod}
-              onBack={() => setSelectedMethod(null)}
-              onClose={() => setWalletVisible(false)}
-              onDeposit={(amount) => console.log("Deposited:", amount)}
-            />
-          ) : (
-            <DepositModal
-              onClose={() => setWalletVisible(false)}
-              onSelectMethod={(method) => setSelectedMethod(method)}
-            />
-          )}
-        </Modal>
+
+        {/* Register Button */}
+        <TouchableOpacity style={styles.registerBtn} onPress={handleRegister}>
+          <Text style={styles.registerText}>Register</Text>
+        </TouchableOpacity>
+
+        
+
+        {/* Star Icon */}
         <TouchableOpacity
           style={styles.starWrapper}
-          onPress={() => setIsYellow(!isYellow)}  // toggle color
+          onPress={() => setIsYellow(!isYellow)}
           activeOpacity={0.7}
         >
           <FontAwesome
             name="star"
             size={18}
-            color={isYellow ? '#FFD700' : '#FFFFFF'}  // yellow or white
+            color={isYellow ? "#FFD700" : "#FFFFFF"}
           />
         </TouchableOpacity>
       </View>
-
-
-
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -93,7 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 15,
     paddingVertical: 15,
-    backgroundColor: "#141414ff", // Header background
+    backgroundColor: "#141414ff",
   },
   left: {
     flexDirection: "row",
@@ -115,7 +120,7 @@ const styles = StyleSheet.create({
   right: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10, // RN 0.71+ supports `gap`
+    gap: 10,
   },
   depositBtn: {
     backgroundColor: "#00B24C",
@@ -126,10 +131,32 @@ const styles = StyleSheet.create({
   depositText: {
     color: "white",
     fontSize: 12,
-    fontFamily: "Ramabhadra-Regular", // 👈 use loaded custom font
+    fontFamily: "Ramabhadra-Regular",
   },
-
-
+  loginBtn: {
+    backgroundColor: "#222",
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#555",
+  },
+  loginText: {
+    color: "#fff",
+    fontSize: 12,
+    fontFamily: "Ramabhadra-Regular",
+  },
+  registerBtn: {
+    backgroundColor: "#0066FF",
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+  },
+  registerText: {
+    color: "white",
+    fontSize: 12,
+    fontFamily: "Ramabhadra-Regular",
+  },
   starWrapper: {
     width: 30,
     height: 30,
@@ -138,4 +165,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-}); 
+});
