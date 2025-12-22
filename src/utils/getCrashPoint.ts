@@ -1,3 +1,5 @@
+// src/utils/getCrashPoint.ts
+
 export type CrashOptions = {
   totalBetAmount: number;
   cashouttotal: number;

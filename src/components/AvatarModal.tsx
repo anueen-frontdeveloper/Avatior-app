@@ -1,3 +1,5 @@
+// src/components/AvatarModal.tsx
+
 import React from "react";
 import {
     View,

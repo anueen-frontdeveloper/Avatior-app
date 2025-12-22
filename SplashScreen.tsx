@@ -13,7 +13,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Splash">;
 
 const SplashScreen: React.FC<Props> = ({ navigation }) => {
   const scale = useSharedValue(0.5);
-  const opacity = useSharedValue(0);
+  const opacity = useSharedValue(0) ;
 
   useEffect(() => {
     // Start animation

@@ -1,4 +1,5 @@
-//src/components/Header.tsx
+// src/components/Header.tsx
+
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons"; // back icon
@@ -9,19 +10,22 @@ import { useTotalBet } from "../context/BalanceContext";
 import DepositWallet from "./Deposit/DepositWallet";
 import type { PaymentMethod } from "./Deposit/DepositModal";
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import ProfileScreen from "./profile/profilesscree";
 
 export default function Header() {
   const [walletVisible, setWalletVisible] = useState(false);
   const [isYellow, setIsYellow] = useState(false);
- 
+  const [ProfileVisible, setProfileVisible] = useState(false);
   const { balance } = useTotalBet();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   return (
     <View style={styles.container}>
       {/* Left Section */}
       <View style={styles.left}>
-        <Ionicons name="chevron-back-outline" size={18} color="#c7c7c7ff" />
-        <Text style={styles.backText}>Back</Text>
+        <TouchableOpacity onPress={() => setProfileVisible(true)} style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons name="chevron-back-outline" size={18} color="#c7c7c7ff" />
+        </TouchableOpacity>
+        <Text style={styles.backText}>Profile</Text>
       </View>
 
       <Text style={[styles.centerText, { textAlign: 'right' }]}>

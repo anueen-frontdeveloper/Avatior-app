@@ -1,4 +1,4 @@
-// src\components\BetHistory.tsx
+// src/components/BetHistory.tsx
 
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from "react-native";

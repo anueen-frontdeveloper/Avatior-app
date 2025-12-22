@@ -3,8 +3,9 @@ import { View, StyleSheet, Image, Animated, Easing } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./App"; // adjust path
-import Header from "./src/components/Header"; // your existing header
-import { useTotalBet } from "./src/context/BalanceContext";  
+import HeaderLogin from "./src/components/HeaderLogin"; // ✅ replaced Header
+import { useTotalBet } from "./src/context/BalanceContext";
+
 type LoadingScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   "loading"
@@ -49,12 +50,15 @@ const Loading = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header at the top */}
-      <Header   />
+      {/* ✅ Replaced with HeaderLogin */}
+      <HeaderLogin />
 
       {/* Centered logo + loader */}
       <View style={styles.centerContent}>
-        <Image source={require("./assets/StartLogo.png")} style={styles.logo} />
+        <Image
+          source={require("./assets/StartLogo.png")}
+          style={styles.logo}
+        />
 
         <View style={styles.row}>
           {animations.map((anim, idx) => (
@@ -84,10 +88,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   centerContent: {
-    flex: 1, // take remaining space
-    justifyContent: "center", // vertically center in remaining space
-    alignItems: "center",     // horizontally center
-  },
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  }, 
   logo: {
     marginBottom: 30,
   },

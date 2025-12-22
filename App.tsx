@@ -11,6 +11,7 @@ import { BalanceProvider } from './src/context/BalanceContext';
 import { SoundProvider } from './src/context/SoundContext';
 import { UserProvider } from './src/context/UserContext';
 import 'react-native-reanimated';
+import { AuthProvider } from "./src/context/AuthContext";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -29,19 +30,22 @@ export default function App() {
   }, []);
 
   return (
-    <SoundProvider>
-      <StatusBar hidden={true} />
-      <BalanceProvider>
-        <UserProvider>
-          <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Splash" component={SplashScreen} />
-              <Stack.Screen name="loading" component={Loading} />
-              <Stack.Screen name="Home" component={HomeScreen} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </UserProvider>
-      </BalanceProvider>
-    </SoundProvider>
+    <AuthProvider>
+
+      <SoundProvider>
+        <StatusBar hidden={true} />
+        <BalanceProvider>
+          <UserProvider>
+            <NavigationContainer>
+              <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Splash" component={SplashScreen} />
+                <Stack.Screen name="loading" component={Loading} />
+                <Stack.Screen name="Home" component={HomeScreen} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </UserProvider>
+        </BalanceProvider>
+      </SoundProvider>
+    </AuthProvider>
   );
 }

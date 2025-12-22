@@ -1,3 +1,5 @@
+// src/components/loginuser/register.tsx
+
 import React, { useState } from "react";
 import {
   View,
@@ -201,16 +203,17 @@ export default RegisterModal;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.67)",
     justifyContent: "center",
     alignItems: "center",
   },
   modalBox: {
-    width: "90%",
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 16,
+    marginTop:100,
     padding: 20,
-    maxHeight: "90%",
+    maxHeight: "100%",
   },
   header: {
     flexDirection: "row",

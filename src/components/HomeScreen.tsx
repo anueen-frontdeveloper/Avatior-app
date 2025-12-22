@@ -1,61 +1,45 @@
-// ✅ HomeScreen.tsx
-import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+// src/components/HomeScreen.tsx
+
+import { Pressable } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import Header from "./Header";
+import HeaderLogin from "./HeaderLogin";
 import BalanceHeader from "./BalanceHeader";
 import MultipliersBar from "./MultipliersBar";
 import GameBoard from "./GameBoard";
 import BetBox from "./BetBox";
 import BetHistory, { Bet } from "./BetHistory";
-import { calculatePayout } from "../utils/system";
 import { useTotalBet } from "../context/BalanceContext";
 import { EarningsProvider } from "../context/EarningsContext";
+import { useAuth } from "../context/AuthContext";
 
 const HomeScreen: React.FC = () => {
+  const [isOpening, setIsOpening] = useState(false);
   const { balance, setBalance } = useTotalBet();
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
   const [bets, setBets] = useState<Bet[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [liveMultiplier, setLiveMultiplier] = useState(1);
   const [multipliers, setMultipliers] = useState<string[]>([]);
+  const { isLoggedIn, setShowRegister, userName, showRegister } = useAuth();
 
-  // --- add bet box (max 2 only)
-  const addBetBox = () => {
-    if (betBoxes.length < 2) {
-      setBetBoxes((prev) => [...prev, Date.now()]);
+  // tap anywhere to open register if not logged in
+  const handleScreenPress = () => {
+    if (!isLoggedIn && !showRegister) {
+      setShowRegister(true);
     }
-  };
-
-  // --- remove bet box
-  const removeBetBox = (id: number) => {
-    setBetBoxes((prev) => prev.filter((boxId) => boxId !== id));
-  };
-
-  const handlePlaceBet = (amount: number) => {
-    if ((balance ?? 0) >= amount) {
-      setBalance((prev) => (prev ?? 0) - amount);
-      
-    }
-  };
-
-  const handleCashOut = (amount: number, multiplier: number) => {
-    const { userGain } = calculatePayout(amount, multiplier);
-    setBalance((prev) => (prev ?? 0) + userGain);
-  };
-
-  const handleCancelBet = (amount: number) => {
-    setBalance((prev) => (prev ?? 0) + amount);
   };
 
   return (
     <EarningsProvider>
-      <View style={{ flex: 1, backgroundColor: "#000" }}>
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={{ paddingBottom: 10 }}
-          stickyHeaderIndices={[0]}
-        >
+      {/* Wrap entire screen in TouchableOpacity to detect taps */}
+      <Pressable onPress={handleScreenPress} style={{ flex: 1, backgroundColor: "#000" }}>
+
+
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 10 }} stickyHeaderIndices={[0]}>
           <Header />
+
           <BalanceHeader />
           <MultipliersBar multipliers={multipliers} />
           <GameBoard
@@ -64,8 +48,11 @@ const HomeScreen: React.FC = () => {
               setLiveMultiplier(val);
               setIsRunning(running);
             }}
+            onCrash={(val: number) => {
+              setMultipliers((prev) => [val.toFixed(2), ...prev].slice(0, 50));
+            }}
           />
-          {/* ✅ Dynamically render up to two BetBoxes */}
+
           {betBoxes.map((id, index) => (
             <BetBox
               key={id}
@@ -73,11 +60,11 @@ const HomeScreen: React.FC = () => {
               balance={balance ?? 0}
               liveMultiplier={liveMultiplier}
               isRunning={isRunning}
-              onPlaceBet={handlePlaceBet}
-              onCashOut={handleCashOut}
-              onCancelBet={handleCancelBet}
-              onAdd={index === 0 && betBoxes.length < 2 ? addBetBox : undefined} // ✅ show Add only on 1st
-              onRemove={index === 1 ? () => removeBetBox(id) : undefined}       // ✅ show Remove only on 2nd
+              onPlaceBet={() => { }}
+              onCashOut={() => { }}
+              onCancelBet={() => { }}
+              onAdd={index === 0 && betBoxes.length < 2 ? () => { } : undefined}
+              onRemove={index === 1 ? () => { } : undefined}
             />
           ))}
 
@@ -88,13 +75,20 @@ const HomeScreen: React.FC = () => {
             setBets={setBets}
           />
         </ScrollView>
-      </View>
+      </Pressable>
     </EarningsProvider>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111" },
+  welcomeText: {
+    color: "#00FF7F",
+    fontSize: 16,
+    textAlign: "center",
+    marginVertical: 8,
+    fontWeight: "600",
+  },
 });
 
 export default HomeScreen;

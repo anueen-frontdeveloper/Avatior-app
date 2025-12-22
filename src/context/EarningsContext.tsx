@@ -1,3 +1,5 @@
+// src/context/EarningsContext.tsx
+
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { Bet } from "../components/BetHistory"; // adjust the import path
 
