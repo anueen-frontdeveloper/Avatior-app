@@ -1,35 +1,48 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useState, useContext, ReactNode } from "react";
 
-type AuthContextType = {
-  isLoggedIn: boolean;
-  setIsLoggedIn: (value: boolean) => void;
+interface AuthContextType {
+  // Existing props
   showLogin: boolean;
   setShowLogin: (v: boolean) => void;
   showRegister: boolean;
   setShowRegister: (v: boolean) => void;
-  userName: string;
-  setUserName: (v: string) => void;
-};
+  
+  // NEW PROPS
+  isLoggedIn: boolean;
+  login: () => void;
+  logout: () => void;
+}
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [userName, setUserName] = useState("");
+  
+  // State to track if user is authenticated
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const login = () => {
+    setIsLoggedIn(true);
+    // Close modals upon login
+    setShowLogin(false);
+    setShowRegister(false);
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        isLoggedIn,
-        setIsLoggedIn,
         showLogin,
         setShowLogin,
         showRegister,
         setShowRegister,
-        userName,
-        setUserName,
+        isLoggedIn,
+        login,
+        logout,
       }}
     >
       {children}

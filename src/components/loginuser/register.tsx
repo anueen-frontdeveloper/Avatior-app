@@ -16,12 +16,13 @@ interface RegisterModalProps {
   visible: boolean;
   onClose: () => void;
   onLogin: () => void;
+  onRegisterSuccess: () => void; // New Prop
 }
-
 const RegisterModal: React.FC<RegisterModalProps> = ({
   visible,
   onClose,
   onLogin,
+  onRegisterSuccess,
 }) => {
   const [tab, setTab] = useState<"social" | "fast">("fast");
   const [phone, setPhone] = useState("");
@@ -167,6 +168,10 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             <TouchableOpacity
               style={[styles.registerBtn, !agree && { opacity: 0.5 }]}
               disabled={!agree}
+              onPress={() => {
+                  onRegisterSuccess();
+              }}
+
             >
               <Text style={styles.registerText}>Register</Text>
             </TouchableOpacity>

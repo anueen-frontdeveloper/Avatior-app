@@ -16,9 +16,11 @@ interface LoginModalProps {
   visible: boolean;
   onClose: () => void;
   onRegister: () => void;
+  onLoginSuccess: () => void; // New Prop
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose, onRegister }) => {
+
+const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose, onRegister, onLoginSuccess }) => {
   const [loginType, setLoginType] = useState<"phone" | "email">("phone");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -103,22 +105,31 @@ const LoginModal: React.FC<LoginModalProps> = ({ visible, onClose, onRegister })
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.loginBtn}>
+          <TouchableOpacity style={styles.loginBtn} onPress={() => {
+            onLoginSuccess();
+          }}
+          >
             <Text style={styles.loginText}>Log in</Text>
           </TouchableOpacity>
 
           {/* Social Login */}
           <View style={styles.socialContainer}>
             {["google", "vk", "yandex", "odnoklassniki", "steam"].map((icon, i) => (
-              <Image
-                key={i}
-                source={{
-                  uri: `https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/${icon}.svg`,
-                }}
-                style={styles.socialIcon}
-              />
+              <TouchableOpacity 
+                key={i} 
+                onPress={onLoginSuccess} // <--- CLICKING ICON LOGS USER IN
+                activeOpacity={0.7}
+              >
+                <Image
+                  source={{
+                    uri: `https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/${icon}.svg`,
+                  }}
+                  style={styles.socialIcon}
+                />
+              </TouchableOpacity>
             ))}
           </View>
+
 
           {/* Register */}
           <View style={styles.footer}>

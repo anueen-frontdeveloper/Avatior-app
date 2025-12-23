@@ -1,3 +1,5 @@
+// src/components/Header.tsx
+
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -6,59 +8,68 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import DepositModal from "./Deposit/DepositModal";
 import DepositWallet from "./Deposit/DepositWallet";
 import { useTotalBet } from "../context/BalanceContext";
-import ProfileScreen from "./profile/profilesscree"; // Fixed typo in import if needed
+import ProfileScreen from "./profile/profilesscree";
 
-// Define types locally if not exported
-type PaymentMethod = any;
+// Define type locally if not exported
+type PaymentMethod = any; 
 
 export default function Header() {
   const [walletVisible, setWalletVisible] = useState(false);
+  const [isYellow, setIsYellow] = useState(false);
   const [ProfileVisible, setProfileVisible] = useState(false);
   const { balance } = useTotalBet();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
 
   return (
     <View style={styles.container}>
-
-      {/* --- LEFT: Back Button --- */}
+      
+      {/* --- Left Section: Profile/Back --- */}
       <TouchableOpacity
-        style={styles.leftButton}
+        style={styles.leftContainer}
         onPress={() => setProfileVisible(true)}
         activeOpacity={0.7}
       >
         <Ionicons name="chevron-back" size={20} color="#fff" />
-        <Text style={styles.backText}>Back</Text>
+        {/* Using Roboto-Medium for navigation text */}
+        <Text style={styles.backText}>Profile</Text>
       </TouchableOpacity>
 
-      {/* --- RIGHT GROUP: Balance + Deposit + Star --- */}
-      <View style={styles.rightSection}>
-
-        {/* Balance Text Block */}
-        <View style={styles.balanceContainer}>
+      {/* --- Right Section: Balance, Deposit, Star --- */}
+      <View style={styles.rightContainer}>
+        
+        {/* Balance Area */}
+        <View style={styles.balanceWrapper}>
           <View style={styles.currencyRow}>
             <Text style={styles.currencyText}>INR</Text>
-            <MaterialIcons name="keyboard-arrow-down" size={14} color="#8E8E93" />
+            <MaterialIcons name="keyboard-arrow-down" size={12} color="#8E8E93" style={{ marginTop: 1 }} />
           </View>
+          {/* Using Roboto-Bold for numbers */}
           <Text style={styles.balanceText}>
             {(balance ?? 0).toFixed(2)}
           </Text>
         </View>
 
         {/* Deposit Button */}
-        <TouchableOpacity
-          style={styles.depositBtn}
+        <TouchableOpacity 
+          style={styles.depositBtn} 
           onPress={() => setWalletVisible(true)}
           activeOpacity={0.8}
         >
+          {/* Using Roboto-Bold for button text */}
           <Text style={styles.depositText}>Deposit</Text>
         </TouchableOpacity>
 
         {/* Star Button */}
         <TouchableOpacity
           style={styles.starBtn}
+          onPress={() => setIsYellow(!isYellow)}
           activeOpacity={0.7}
         >
-          <FontAwesome name="star" size={14} color="#fff" />
+          <FontAwesome
+            name="heart"
+            size={14}
+            color={isYellow ? '#FFD700' : '#FFFFFF'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -91,76 +102,81 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Pushes Left and Right apart
-    paddingTop: 50, // Adjusted for status bar
+    justifyContent: "space-between", // Key for separating Left and Right
+    paddingTop: 50, // Adjust for status bar
     paddingBottom: 15,
     paddingHorizontal: 15,
-    backgroundColor: "#191919", // Exact dark grey from image
+    backgroundColor: "#191919", // Dark Grey background
   },
 
-  // --- Left Side ---
-  leftButton: {
+  // --- LEFT SIDE ---
+  leftContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   backText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
     marginLeft: 4,
-    // System font looks closest to the image
+    // YOUR FONT:
+    fontFamily: "Roboto-Medium", 
   },
 
-  // --- Right Side Group ---
-  rightSection: {
+  // --- RIGHT SIDE ---
+  rightContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12, // Consistent spacing between Balance, Deposit, and Star
+    gap: 12, // Consistent spacing between elements
   },
 
   // Balance
-  balanceContainer: {
-    alignItems: "flex-end", // Aligns text to the right
-    justifyContent: "center",
+  balanceWrapper: {
+    alignItems: "flex-end", // Aligns text to right
+    justifyContent: 'center',
     marginRight: 4,
   },
   currencyRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: -2, // Pulls currency closer to numbers
   },
   currencyText: {
-    color: "#8E8E93", // Light grey
+    color: "#8E8E93",
     fontSize: 10,
-    fontWeight: "700",
     marginRight: 2,
+    // YOUR FONT:
+    fontFamily: "Roboto-Bold",
   },
   balanceText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "700", // Bold font matches image
     lineHeight: 18,
+    // YOUR FONT:
+    fontFamily: "Roboto-Bold", 
   },
 
   // Deposit Button
   depositBtn: {
-    backgroundColor: "#00C853", // Bright Green
+    backgroundColor: "#00C853", // Vibrant Green
     borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   depositText: {
     color: "#fff",
     fontSize: 13,
-    fontWeight: "600",
+    // YOUR FONT:
+    fontFamily: "Roboto-Bold",
   },
 
   // Star Button
   starBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: "#2C2C2E", // Darker grey square
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#2C2C2E", // Darker Square
     alignItems: "center",
     justifyContent: "center",
   },

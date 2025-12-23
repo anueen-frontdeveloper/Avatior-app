@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from "react-native";
 import { useEarnings } from "../context/EarningsContext";
@@ -59,12 +58,15 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   const visibleBets = bets.filter(b => b.isVisible !== false);
   const [totalWin, setTotalWin] = useState(0);
   const userHasBet = totalBetAmount > 0;
+
+  // 1. Initialize Bets
   useEffect(() => {
     if (!isRunning) {
       const randomBets: Bet[] = Array.from({ length: 9 }).map((_, i) => ({
         id: `user${i}`,
         user: `User${Math.floor(Math.random() * 1000)}`,
         bet: 100,
+        // Random target between 1.00x and 4.00x
         multiplierTarget: parseFloat((Math.random() * 3 + 1).toFixed(2)),
         avatar: `https://i.pravatar.cc/40?img=${i + 1}`,
         cashout: undefined,
@@ -84,7 +86,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
         const newTotalBet = all.reduce((sum, b) => sum + b.bet, 0);
         updateTotals(all);
         setTotalBetAmountState(newTotalBet);
-        console.log("✅ Fixed Total Bet Amount:", newTotalBet);
         return all;
       });
     }
@@ -94,11 +95,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     const betTotal = totalBetAmountState;
     const cashoutTotal = withdrawCash || 0;
     const system = betTotal - cashoutTotal;
-    console.log("========== SYSTEM SUMMARY ==========");
-    console.log("Total Bet Amount:", betTotal);
-    console.log("Cashout Total:", cashoutTotal);
-    console.log("System Earnings (net):", system);
-    console.log("====================================");
   }, [totalBetAmountState, withdrawCash]);
 
 
@@ -145,13 +141,19 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     }
   }, [bets]);
 
+  // =========================================================
+  // LOGIC CHANGE HERE FOR 60% WIN / 40% LOSE
+  // =========================================================
   useEffect(() => {
     if (!isRunning) return;
 
     bets.forEach(b => {
+      // Skip if it's me or if already cashed out
       if (b.isMine || b.cashout !== undefined) return;
 
-      const willCashout = Math.random() < 0.8;
+      // 0.6 = 60% Chance they attempt to cashout successfully
+      // 0.4 = 40% Chance they hesitate/wait (increasing risk of crashing and losing)
+      const willCashout = Math.random() < 0.6;
 
       if (willCashout && b.multiplierTarget && liveMultiplier >= b.multiplierTarget) {
         const delay = Math.random() * 300;
@@ -194,9 +196,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
   const renderBet = ({ item }: { item: Bet }) => {
     const bgColor = item.cashout !== undefined ? "#1F320D" : "#101112";
-    {
-
-    }
 
     return (
       <View style={[styles.row, { backgroundColor: bgColor }]}>
@@ -775,23 +774,23 @@ const styles = StyleSheet.create({
   },
   userSection: {
     flexDirection: "row",
-    marginLeft:20,
+    marginLeft: 20,
     alignItems: "center",
   },
 
   userName: {
     color: "#FFF",
     fontSize: 15,
-        marginLeft:20,
+    marginLeft: 20,
 
-    fontFamily : "CrimsonPro-Bold",
+    fontFamily: "CrimsonPro-Bold",
   },
   dateText: {
     color: "#A9A9A9",
     fontSize: 12,
     marginTop: 2,
 
-    fontFamily:"Roboto-VariableFont_wdth,wght",
+    fontFamily: "Roboto-VariableFont_wdth,wght",
   },
   iconSection: {
     flexDirection: "row",
@@ -833,5 +832,3 @@ const styles = StyleSheet.create({
 });
 
 export default BetHistory;
-
-
