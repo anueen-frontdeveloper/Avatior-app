@@ -32,7 +32,7 @@ const WIDTH = 300;
 type Props = {
   onCrash?: (val: number) => void;
   onUpdate?: (val: number, isRunning: boolean) => void;
-  bets?: any[];   // <-- add this line
+  bets?: any[];
 
 };
 
@@ -52,7 +52,6 @@ export default function BalloonThread({
   const glow = useSharedValue(1);
 
   const progressAnim = useSharedValue(0);
-  // shared values
   const multiplier = useSharedValue(1);
   const cx = useSharedValue(points[0].x);
   const cy = useSharedValue(points[0].y);
@@ -127,25 +126,25 @@ export default function BalloonThread({
     }
   }, [isRunning]);
   const animatedGlowStyle = useAnimatedStyle(() => {
-    let glowColor = '#369CD4'; // default blue
+    let glowColor = '#369CD4';
     if (multiplier.value > 2) glowColor = '#9951ffff';
     if (multiplier.value > 10) glowColor = '#9D1F80';
 
     return {
-      textShadowRadius: 19 + glow.value * 90,
+      textShadowRadius: 10 + glow.value * 30,
       textShadowColor: glowColor,
-      textShadowOffset: { width: 3, height: 0 },
+      textShadowOffset: { width: 0, height: 0 },
+      opacity: 1,
     };
   });
   useEffect(() => {
-    // start the game automatically after a short delay
     const t = setTimeout(() => setIsRunning(true), 300);
     return () => clearTimeout(t);
   }, []);
 
   useEffect(() => {
     if (!isRunning) return;
-    
+
     multiplier.value = 1;
 
     playStartSound(() => {
@@ -174,13 +173,12 @@ export default function BalloonThread({
 
         sway.value = withRepeat(withTiming(8, { duration: 1000 }), -1, true);
 
-        // Start multiplier animation
         const startTime = Date.now();
         let rafId: number;
 
         const tick = () => {
-          const elapsed = (Date.now() - startTime) / 1000; // seconds
-          const growthRate = Math.log(100) / 120; // reach 100x at ~30s
+          const elapsed = (Date.now() - startTime) / 1000;
+          const growthRate = Math.log(100) / 120;
 
           const next = Math.exp(growthRate * elapsed);
           multiplier.value = next;
@@ -195,19 +193,18 @@ export default function BalloonThread({
         };
         rafId = requestAnimationFrame(tick);
 
-        // Cleanup
         return () => {
           if (rafId) cancelAnimationFrame(rafId);
           cancelAnimation(cx);
           cancelAnimation(cy);
           cancelAnimation(sway);
         };
-      }, 600); // 0.5s delay
+      }, 600);
     });
   }, [isRunning]);
 
   useEffect(() => {
-    let timer: number; // number works for React Native
+    let timer: number;
 
     if (!isRunning && countdown > 0) {
       timer = setInterval(() => {
@@ -290,8 +287,8 @@ export default function BalloonThread({
   };
   const animatedPlaneStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: cx.value - 34 }, // offset to center the plane
-      { translateY: cy.value - 70 }, // offset to center the plane
+      { translateX: cx.value - 34 },
+      { translateY: cy.value - 70 },
     ],
   }));
   return (
@@ -353,7 +350,7 @@ export default function BalloonThread({
         isRunning={isRunning}
         isCrashed={showCrash}
         countdown={countdown}
-        count={bets?.length ?? 0}   // ✅ safe access — shows 0 if bets is undefined
+        count={bets?.length ?? 0}
       />    </View>
   );
 }
@@ -386,7 +383,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 5, height: 1 },
     textShadowRadius: 3,
     width: '100%',
-    color: 'white',       // always fully visible
+    color: 'white',
   },
 
   crashOverlay: {
@@ -444,12 +441,11 @@ const styles = StyleSheet.create({
 });
 
 
-// ✅ Correct props typing
 const PlayerCounter: React.FC<{
   isRunning: boolean;
   isCrashed: boolean;
   countdown: number;
-  count?: number;   // externally supplied value, e.g., bets.length
+  count?: number;
   style?: any;
 }> = ({ isRunning, isCrashed, countdown, count, style }) => {
   const [internalCount, setInternalCount] = useState(0);
@@ -533,7 +529,6 @@ const playerStyles = StyleSheet.create({
     marginHorizontal: 5,
     fontFamily: "Slabo13px-Regular",
   },
-  // ✅ positioning style for bottom right
   playerCounter: {
     position: "absolute",
     bottom: 10,

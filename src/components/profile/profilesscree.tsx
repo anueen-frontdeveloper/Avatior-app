@@ -1,4 +1,3 @@
-// src/components/profile/profilesscree.tsx
 
 import React, { useState } from 'react';
 import {
@@ -7,19 +6,42 @@ import {
     View,
     TouchableOpacity,
     ScrollView,
-    SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+// Sub-screen Imports
 import ReferralCode from './referralcode';
 import Withdrawal from './withdrawal';
 import WithdrawlBank from './withdrawlbank';
-import Transaction from './transcation'; // <--- NEW IMPORT
-import SettingModal from '../Setting/SettingModal'; // <--- NEW IMPORT
-import SettingChangeName from '../Setting/SettingChangeName'; // Import the new file
+import Transaction from './transcation';
+import SettingModal from '../Setting/SettingModal';
+import SettingChangeName from '../Setting/SettingChangeName';
 import SettingDoB from '../Setting/SettingDoB';
+import SettingPhoneNum from '../Setting/SettingPhoneNum';
+import SettingEmail from '../Setting/SettingEmail';
+import SettingPassword from '../Setting/SettingPassword';
+import SupportModal from './SupportModal';
+import { useUser } from '../../context/UserContext';
+
+// --- 1. DEFINE THE VARIABLE STRUCTURE ---
+interface UserData {
+    name: string;
+    id: string;
+    balance: string;
+    dob: string;
+    country: string;
+    phone: string;
+    email: string;
+    currency: string;
+}
 // Reusable Menu Item Component
-const MenuItem = ({ icon, title, subtitle, showBorder = true }: any) => (
-    <TouchableOpacity style={[styles.menuItem, showBorder && styles.menuItemBorder]}>
+// Added 'onPress' to props destructuring and TouchableOpacity
+const MenuItem = ({ icon, title, subtitle, showBorder = true, onPress }: any) => (
+    <TouchableOpacity
+        style={[styles.menuItem, showBorder && styles.menuItemBorder]}
+        onPress={onPress}
+        activeOpacity={0.7}
+    >
         <View style={styles.iconContainer}>
             <Icon name={icon} size={24} color="#666" />
         </View>
@@ -30,29 +52,51 @@ const MenuItem = ({ icon, title, subtitle, showBorder = true }: any) => (
         <Icon name="chevron-right" size={20} color="#ccc" />
     </TouchableOpacity>
 );
-type ViewState = 'profile' | 'referral' | 'withdrawal' | 'withdrawalBank' | 'transaction' | 'settings' | 'changeName' | 'changeDoB'; // <--- UPDATED TYPE
+type ProfileScreenProps = {
+    onClose: () => void;
+};
 
-export default function ProfileScreen() {
+// Updated Type Definition to include all screens
+type ViewState =
+    | 'profile'
+    | 'referral'
+    | 'withdrawal'
+    | 'withdrawalBank'
+    | 'transaction'
+    | 'settings'
+    | 'changeName'
+    | 'changeDoB'
+    | 'changePhone'
+    | 'changeEmail'
+    | 'changePassword';
+
+export default function ProfileScreen({ onClose }: ProfileScreenProps) {
     const [currentView, setCurrentView] = useState<ViewState>('profile');
+    const [showSupport, setShowSupport] = useState(false);
+    const { userData, updateUser } = useUser();
 
+    const updateField = (field: keyof UserData, value: string) => {
+        updateUser(field, value);
+    };
+
+    // Global close handler (usually closes the whole modal/sheet)
     const handleClose = () => {
         console.log("Close modal/screen");
         setCurrentView('profile');
+        // In a real app navigation stack, this might be navigation.goBack()
     };
 
+    // --- NAVIGATION LOGIC ---
+
     if (currentView === 'referral') {
-        return (
-            <ReferralCode
-                onBack={() => setCurrentView('profile')}
-                onClose={handleClose}
-            />
-        );
+        return <ReferralCode onBack={() => setCurrentView('profile')} onClose={handleClose} />;
     }
+
     if (currentView === 'withdrawal') {
         return (
             <Withdrawal
                 onClose={() => setCurrentView('profile')}
-                onSelectMethod={(method) => {
+                onSelectMethod={(method: string) => {
                     if (method === 'IMPS') setCurrentView('withdrawalBank');
                 }}
             />
@@ -60,52 +104,74 @@ export default function ProfileScreen() {
     }
 
     if (currentView === 'withdrawalBank') {
-        return (
-            <WithdrawlBank
-                onBack={() => setCurrentView('withdrawal')}
-                onClose={handleClose}
-            />
-        );
+        return <WithdrawlBank onBack={() => setCurrentView('withdrawal')} onClose={handleClose} />;
     }
-    // New Transaction View Condition
+
     if (currentView === 'transaction') {
-        return (
-            <Transaction
-                onBack={() => setCurrentView('profile')}
-                onClose={handleClose}
-            />
-        );
+        return <Transaction onBack={() => setCurrentView('profile')} onClose={handleClose} />;
     }
-    // --- NEW SETTINGS CONDITION ---
+
+
+    // --- SETTINGS FLOW ---
+
     if (currentView === 'settings') {
         return (
             <SettingModal
+                userData={userData}
                 onBack={() => setCurrentView('profile')}
                 onClose={handleClose}
                 onNavigate={(screen) => {
                     if (screen === 'changeName') setCurrentView('changeName');
+                    if (screen === 'changeDoB') setCurrentView('changeDoB');
+                    if (screen === 'changePhone') setCurrentView('changePhone');
+                    if (screen === 'changeEmail') setCurrentView('changeEmail');
+                    if (screen === 'changePassword') setCurrentView('changePassword'); // <--- Logic
                 }}
             />
         );
     }
-    // NEW CONDITION
+
+
     if (currentView === 'changeName') {
         return (
             <SettingChangeName
-                onBack={() => setCurrentView('settings')} // Go back to Settings
+                currentName={userData.name} // Get name from Context
+                onSave={(newName) => {
+                    updateUser('name', newName); // <--- Update Global Context
+                    setCurrentView('settings');
+                }}
+                onBack={() => setCurrentView('settings')}
+                onClose={handleClose}
+            />
+        );
+    }
+    if (currentView === 'changeDoB') {
+        return <SettingDoB onBack={() => setCurrentView('settings')} onClose={handleClose} />;
+    }
+
+    if (currentView === 'changePhone') {
+        return <SettingPhoneNum onBack={() => setCurrentView('settings')} onClose={handleClose} />;
+    }
+
+    if (currentView === 'changeEmail') {
+        return (
+            <SettingEmail
+                currentEmail={userData.email}
+                onSave={(newEmail) => {
+                    updateUser('email', newEmail); // <--- Update Global Context
+                    setCurrentView('settings');
+                }}
+                onBack={() => setCurrentView('settings')}
                 onClose={handleClose}
             />
         );
     }
 
-    if (currentView === 'changeDoB') {
-        return (
-            <SettingDoB
-                onBack={() => setCurrentView('settings')} // Go back to Settings
-                onClose={handleClose}
-            />
-        );
+
+    if (currentView === 'changePassword') {
+        return <SettingPassword onBack={() => setCurrentView('settings')} onClose={handleClose} />;
     }
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.container}>
@@ -113,7 +179,7 @@ export default function ProfileScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Profile</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={onClose}>
                         <Icon name="close" size={24} color="#333" />
                     </TouchableOpacity>
                 </View>
@@ -122,7 +188,7 @@ export default function ProfileScreen() {
 
                     {/* User Info */}
                     <View style={styles.userInfo}>
-                        <Text style={styles.userName}>Anurag Kohli</Text>
+                        <Text style={styles.userName}>{userData.name}</Text>
                         <View style={styles.idContainer}>
                             <Icon name="card-account-details-outline" size={16} color="#666" style={{ marginRight: 5 }} />
                             <Text style={styles.userId}>ID 50661927</Text>
@@ -135,7 +201,7 @@ export default function ProfileScreen() {
                     {/* Wallet Card */}
                     <View style={styles.walletCard}>
                         <Text style={styles.walletLabel}>Main account</Text>
-                        <Text style={styles.walletBalance}>₹0.05</Text>
+                        <Text style={styles.walletBalance}>₹{userData.balance}</Text>
 
                         <View style={styles.buttonRow}>
                             <TouchableOpacity style={[styles.actionBtn, styles.depositBtn]}>
@@ -143,7 +209,6 @@ export default function ProfileScreen() {
                                 <Text style={styles.depositText}>Deposit</Text>
                             </TouchableOpacity>
 
-                            {/* WITHDRAW BUTTON TRIGGER */}
                             <TouchableOpacity
                                 style={[styles.actionBtn, styles.withdrawBtn]}
                                 onPress={() => setCurrentView('withdrawal')}
@@ -159,6 +224,7 @@ export default function ProfileScreen() {
                             icon="gift-outline"
                             title="Bonuses"
                             subtitle="Free spins and other offers"
+                        // onPress logic can be added later
                         />
                         <MenuItem
                             icon="ticket-percent-outline"
@@ -175,6 +241,7 @@ export default function ProfileScreen() {
                             icon="clock-time-four-outline"
                             title="Bet history"
                             subtitle="Open and settled bets"
+                        // onPress logic can be added later
                         />
                         <MenuItem
                             icon="history"
@@ -192,19 +259,24 @@ export default function ProfileScreen() {
                             title="Settings"
                             subtitle="Edit personal data"
                             onPress={() => setCurrentView('settings')}
-
                         />
                         <MenuItem
                             icon="headset"
                             title="24/7 support"
                             subtitle="All contact info"
                             showBorder={false}
+                            onPress={() => setShowSupport(true)} // <--- Open Modal
                         />
                     </View>
+                    <SupportModal
+                        visible={showSupport}
+                        onClose={() => setShowSupport(false)}
+                    />
 
                 </ScrollView>
             </View>
         </SafeAreaView>
+
     );
 }
 
@@ -259,10 +331,10 @@ const styles = StyleSheet.create({
     // Wallet Card
     walletCard: {
         backgroundColor: '#F7F8FA',
-        borderRadius: 20,
-        marginHorizontal: 16,
-        padding: 20,
-        marginBottom: 20,
+        borderRadius: 16,
+        marginHorizontal: 12,
+        padding: 12,
+        marginBottom: 12,
     },
     walletLabel: {
         fontSize: 14,
@@ -270,19 +342,19 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     walletBalance: {
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: '700',
         color: '#000',
-        marginBottom: 20,
+        marginBottom: 12,
     },
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 15,
+        gap: 10,
     },
     actionBtn: {
         flex: 1,
-        height: 48,
+        height: 36,
         borderRadius: 12,
         flexDirection: 'row',
         justifyContent: 'center',
@@ -297,27 +369,28 @@ const styles = StyleSheet.create({
     depositText: {
         color: '#fff',
         fontWeight: '700',
-        fontSize: 16,
+        fontSize: 14,
     },
     withdrawText: {
         color: '#000',
         fontWeight: '600',
-        fontSize: 16,
+        fontSize: 14,
     },
 
     // Menu Groups
     menuGroup: {
-        backgroundColor: '#F7F8FA', // Light grey background for groups
-        borderRadius: 20,
-        marginHorizontal: 16,
-        marginBottom: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
+        backgroundColor: '#F7F8FA',
+        borderRadius: 16,
+        marginHorizontal: 12,
+        marginBottom: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
     },
+
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 12,
     },
     menuItemBorder: {
         borderBottomWidth: 1,
@@ -330,13 +403,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     menuTitle: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: '700',
         color: '#333',
         marginBottom: 2,
     },
     menuSubtitle: {
-        fontSize: 13,
+        fontSize: 12,
         color: '#777',
     },
 });

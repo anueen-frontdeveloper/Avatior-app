@@ -9,16 +9,16 @@ interface ChangeNameModalProps {
 }
 
 const ChangeNameModal: React.FC<ChangeNameModalProps> = ({ visible, onClose }) => {
-  const { username, setUsername } = useUser();
-  const [name, setName] = useState(username);
+  const { userData, updateUser  } = useUser();
+  const [name, setName] = useState(userData.name);
 
   // keep local state synced with context when modal opens
   useEffect(() => {
-    if (visible) setName(username);
-  }, [visible, username]);
+    if (visible) setName(userData.name);
+  }, [visible, userData.name]);
 
   const handleChange = () => {
-    setUsername(name.trim() || username); // don’t allow empty
+    updateUser({ ...userData, name: name.trim() || userData.name }); // don’t allow empty
     onClose();
   };
 

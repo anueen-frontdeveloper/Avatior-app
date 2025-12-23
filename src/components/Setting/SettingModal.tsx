@@ -14,20 +14,31 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 interface SettingModalProps {
   onBack: () => void;
   onClose: () => void;
-  onNavigate: (screen: string) => void; // <--- NEW PROP
-
+  onNavigate: (screen: string) => void;
+  userData: {
+    name: string;
+    id: string;
+    balance: string;
+    dob: string;
+    country: string;
+    phone: string;
+    email: string;
+    currency: string;
+  }; 
 }
 
 // Reusable Row Component
 const SettingRow = ({ label, value, showChevron, isVerified, showFlag, isLast, actionText, onPress }: any) => (
   <TouchableOpacity
     style={[styles.row, !isLast && styles.rowBorder]}
-    disabled={!onPress} // Enable click only if onPress is passed
+    disabled={!onPress} 
     onPress={onPress}
   >
     <Text style={styles.label}>{label}</Text>
     <View style={styles.rightSide}>
+      {/* --- FIX: Display dynamic value --- */}
       {value && <Text style={styles.value}>{value}</Text>}
+      
       {showFlag && <Text style={{ fontSize: 18, marginLeft: 5 }}>🇮🇳</Text>}
       {isVerified && <Icon name="check-decagram" size={18} color="#00C853" style={{ marginLeft: 8 }} />}
       {actionText && <Text style={styles.actionText}>{actionText}</Text>}
@@ -36,7 +47,7 @@ const SettingRow = ({ label, value, showChevron, isVerified, showFlag, isLast, a
   </TouchableOpacity>
 );
 
-export default function SettingModal({ onBack, onClose, onNavigate }: SettingModalProps) {
+export default function SettingModal({ onBack, onClose, onNavigate, userData }: SettingModalProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -59,37 +70,47 @@ export default function SettingModal({ onBack, onClose, onNavigate }: SettingMod
           {/* Section: Main Data */}
           <Text style={styles.sectionTitle}>Main data</Text>
           <View style={styles.cardGroup}>
-            {/* CLICKING NAME NOW TRIGGERS NAVIGATION */}
+            
+            {/* --- REAL DATA CONNECTION HERE --- */}
             <SettingRow
               label="Name"
-              value="Anurag Kohli"
+              value={userData.name} // <--- Uses the real name from State
               showChevron
               onPress={() => onNavigate('changeName')}
             />
+            
             <SettingRow
               label="Date of birth"
-              value="01/01/1990"
+              value={userData.dob} // <--- Uses real DoB
               showChevron
               onPress={() => onNavigate('changeDoB')}
             />
-            
-                        <SettingRow label="Country of registration" value="India" showFlag isLast />
-          </View>
 
+            <SettingRow label="Country of registration" value={userData.country} showFlag isLast />
+          </View>
 
           {/* Section: Contact Info */}
           <Text style={styles.sectionTitle}>Contact info</Text>
 
-          {/* Phone (Separate Card) */}
           <View style={styles.singleCard}>
-            <SettingRow label="Phone number" value="+91 88474 08708" isVerified isLast />
+            <SettingRow
+              label="Phone number"
+              value={userData.phone} // <--- Uses real Phone
+              isVerified
+              isLast
+              onPress={() => onNavigate('changePhone')} 
+            />
           </View>
 
-          {/* Email (Separate Card) */}
           <View style={styles.singleCard}>
-            <SettingRow label="Email" value="anuragkohlicu@gmail.com" isVerified isLast />
+            <SettingRow
+              label="Email"
+              value={userData.email} // <--- Uses real Email
+              isVerified
+              isLast
+              onPress={() => onNavigate('changeEmail')}
+            />
           </View>
-
           <Text style={styles.helperText}>
             To change confirmed data <Text style={styles.linkText}>contact us</Text>
           </Text>
@@ -97,22 +118,22 @@ export default function SettingModal({ onBack, onClose, onNavigate }: SettingMod
           {/* Section: Security */}
           <Text style={styles.sectionTitle}>Security</Text>
           <View style={styles.singleCard}>
-            <SettingRow label="Password" showChevron isLast />
+            <SettingRow
+              label="Password"
+              showChevron
+              isLast
+              onPress={() => onNavigate('changePassword')}
+            />
           </View>
           <Text style={styles.helperText}>
             Enter your current password to make changes
           </Text>
 
-          {/* Section: Other settings */}
-          <Text style={styles.sectionTitle}>Other settings</Text>
           <View style={styles.singleCard}>
             <SettingRow label="Active sessions" actionText="End" isLast />
-            <Text style={styles.subLabel}>Log out on other devices</Text>
           </View>
 
-          <View style={{ height: 40 }} />
         </ScrollView>
-
       </View>
     </SafeAreaView>
   );
@@ -132,43 +153,15 @@ const styles = StyleSheet.create({
   backText: { color: '#007AFF', fontSize: 16, fontWeight: '500' },
   title: { fontSize: 24, fontWeight: '700', color: '#000', marginBottom: 20 },
   scrollContent: { paddingBottom: 20 },
-
   sectionTitle: { fontSize: 13, color: '#666', marginBottom: 8, marginTop: 10 },
-
-  // Container for grouped items (Main data)
-  cardGroup: {
-    backgroundColor: '#F2F3F5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-  },
-
-  // Container for single items (Phone, Email, Password)
-  singleCard: {
-    backgroundColor: '#F2F3F5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 2, // Slight padding adjustment
-    marginBottom: 8,
-  },
-
-  // Row Styling
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  rowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
+  cardGroup: { backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 16, marginBottom: 10 },
+  singleCard: { backgroundColor: '#F2F3F5', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 2, marginBottom: 8 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
   label: { fontSize: 15, fontWeight: '700', color: '#000' },
   rightSide: { flexDirection: 'row', alignItems: 'center' },
   value: { fontSize: 14, color: '#666', fontWeight: '500' },
-  actionText: { fontSize: 14, color: '#D32F2F', fontWeight: '700' }, // Red/Orange for "End"
-
+  actionText: { fontSize: 14, color: '#D32F2F', fontWeight: '700' },
   helperText: { fontSize: 12, color: '#666', marginBottom: 15, marginTop: 2 },
   linkText: { color: '#007AFF', fontWeight: '600' },
-  subLabel: { fontSize: 12, color: '#666', marginTop: -10, marginBottom: 14 },
 });

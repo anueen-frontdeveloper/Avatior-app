@@ -4,7 +4,7 @@ import { Pressable } from "react-native";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import Header from "./Header";
-import HeaderLogin from "./HeaderLogin";
+import HeaderLogin from "./HeaderLogin1";
 import BalanceHeader from "./BalanceHeader";
 import MultipliersBar from "./MultipliersBar";
 import GameBoard from "./GameBoard";
@@ -63,8 +63,14 @@ const HomeScreen: React.FC = () => {
               onPlaceBet={() => { }}
               onCashOut={() => { }}
               onCancelBet={() => { }}
-              onAdd={index === 0 && betBoxes.length < 2 ? () => { } : undefined}
-              onRemove={index === 1 ? () => { } : undefined}
+              onAdd={index === 0 && betBoxes.length < 2 ? () => {
+                setBetBoxes(prev => [...prev, prev.length + 1]);
+              } : undefined}
+
+              onRemove={index === 1 ? () => {
+                setBetBoxes(prev => prev.filter((_, i) => i !== index));
+              } : undefined}
+
             />
           ))}
 

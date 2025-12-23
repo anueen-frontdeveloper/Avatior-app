@@ -22,10 +22,20 @@ export default function Header() {
     <View style={styles.container}>
       {/* Left Section */}
       <View style={styles.left}>
-        <TouchableOpacity onPress={() => setProfileVisible(true)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons name="chevron-back-outline" size={18} color="#c7c7c7ff" />
+        {/* Left Section */}
+        <TouchableOpacity
+          style={styles.left}
+          onPress={() => setProfileVisible(true)}  // or your back logic
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="chevron-back-outline"
+            size={18}
+            color="#c7c7c7ff"
+          />
+          <Text style={styles.backText}>Profile</Text>
         </TouchableOpacity>
-        <Text style={styles.backText}>Profile</Text>
+
       </View>
 
       <Text style={[styles.centerText, { textAlign: 'right' }]}>
@@ -82,6 +92,13 @@ export default function Header() {
         </TouchableOpacity>
       </View>
 
+      <Modal
+        visible={ProfileVisible}
+        animationType="slide"
+        transparent={false}
+      >
+        <ProfileScreen onClose={() => setProfileVisible(false)} />
+      </Modal>
 
 
     </View>

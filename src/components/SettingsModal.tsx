@@ -49,7 +49,7 @@ const SettingsPopout: React.FC<Props> = ({
   const [selectedAvatar, setSelectedAvatar] = useState("https://i.pravatar.cc/60"); // default avatar
   const [testBetVisible, setTestBetVisible] = useState(false); // ✅ new system‑info toggle
   const [changeNameVisible, setChangeNameVisible] = useState(false);
-  const { username } = useUser(); // 👈 get username from context
+  const { userData, updateUser } = useUser();
 
   const slideAnim = useRef(new Animated.Value(width)).current; // starts off-screen right
   const [player, setPlayer] = useState<Sound | null>(null);
@@ -94,29 +94,30 @@ const SettingsPopout: React.FC<Props> = ({
       ]}
     >
       {/* Header */}
-      <View style={styles.header}>
-        <Image
-          source={{ uri: selectedAvatar }}
-          style={styles.avatar}
-        />
+          <View style={styles.header}>
+            <View style={styles.userSection}>
+              <Image
+                source={{ uri: selectedAvatar }}
+                style={styles.avatar}
+              />
+                <Text style={styles.username} numberOfLines={1}>{userData.name}</Text>
+            </View>
 
-        <TouchableOpacity onPress={() => setChangeNameVisible(true)}>
-          <Text style={styles.username}>{username}</Text>
-        </TouchableOpacity>
+        {/* Right Side: Change Avatar Button */}
         <TouchableOpacity
           style={styles.changeAvatarBtn}
           onPress={() => setAvatarVisible(true)}
-        >          <Ionicons name="person-circle-outline" size={22} color="#8a8a8aff" />
+        >
+          <Ionicons name="person-circle-outline" size={22} color="#8a8a8aff" />
           <Text style={styles.changeAvatarText}>Change{"\n"}Avatar</Text>
         </TouchableOpacity>
+
         <AvatarModal
           visible={avatarVisible}
           onClose={() => setAvatarVisible(false)}
           onSelect={(uri) => setSelectedAvatar(uri)}
           selectedAvatar={selectedAvatar}
         />
-
-
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -162,7 +163,7 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-            // onPress={() => setTestBetVisible(true)} // open modal
+          // onPress={() => setTestBetVisible(true)} // open modal
           >
             <Ionicons name="gift-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>FREE Bets</Text>
@@ -172,7 +173,7 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-            // onPress={() => setHistoryVisible(true)}
+          // onPress={() => setHistoryVisible(true)}
           >            <Ionicons name="document-text-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>My Bet History</Text>
           </TouchableOpacity>
@@ -184,7 +185,7 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-            // onPress={() => setGameLimitsVisible(true)}
+          // onPress={() => setGameLimitsVisible(true)}
           >
             <Ionicons name="cash-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>Game Limits</Text>
@@ -242,8 +243,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between", // Pushes Name left, Button right
     padding: 15,
-
+    marginBottom: 10,
+  },
+  userSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1, // Takes up available space to push button to the right
+    marginRight: 10, // Small gap before the button
   },
   group: { marginTop: 18 },
   backdrop: {
@@ -263,21 +271,21 @@ const styles = StyleSheet.create({
     borderWidth: 0.3,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    marginLeft: 40,
   },
   changeAvatarText: {
     color: "#a0a0a0ff",
     fontFamily: "Arial",
-    fontSize: 13,
+    fontSize: 11, // Slightly smaller to fit better
     marginLeft: 6,
+    textAlign: 'left',
   },
 
   username: {
-    flex: 1,
     color: "#fff",
     fontWeight: "600",
-    marginLeft: 10,
-    marginTop: 18,
+    marginLeft: 12,
+    fontSize: 15,
+
   },
   changeAvatar: {
     fontSize: 12,

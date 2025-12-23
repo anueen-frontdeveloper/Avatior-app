@@ -438,12 +438,14 @@ const styles = StyleSheet.create({
 
   iconButton: {
     marginLeft: 30,
-    borderColor: "#161616ff",
-    borderWidth: 4,
+    width: 25,
+    height: 25,
     borderRadius: 50,
-    padding: 1,
-    backgroundColor: "#4e4e4eff"
+    backgroundColor: "#4e4e4eff",
+    justifyContent: "center",
+    alignItems: "center",
   }
+
   ,
   activeTab: {
     backgroundColor: "#2C2C2E", paddingVertical: 1, paddingHorizontal: 40
