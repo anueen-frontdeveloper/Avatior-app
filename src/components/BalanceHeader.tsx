@@ -40,7 +40,7 @@ const BalanceHeader: React.FC = () => {
 
         {/* Chat */}
         <TouchableOpacity
-          // onPress={() => setActiveModal("chat")}
+          onPress={() => setActiveModal("chat")}
           accessibilityLabel="Open chat"
         >
           <Ionicons
@@ -62,10 +62,10 @@ const BalanceHeader: React.FC = () => {
         visible={activeModal === "provablyFair"}
         onClose={() => setActiveModal(null)}
       />
-      {/* <ChatModal
+      <ChatModal
         visible={activeModal === "chat"}
         onClose={() => setActiveModal(null)}
-      /> */}
+      />
     </View>
   );
 };

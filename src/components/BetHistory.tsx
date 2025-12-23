@@ -1,4 +1,3 @@
-// src/components/BetHistory.tsx
 
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, FlatList, StyleSheet, Image } from "react-native";
@@ -8,7 +7,6 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 
-// Types
 export type Bet = {
   id: string;
   user: string;
@@ -19,8 +17,8 @@ export type Bet = {
   cashout?: number;
   isMine?: boolean;
   avatar?: string;
-  didLose?: boolean;  // <-- new field
-  date?: string; // 👈 add this
+  didLose?: boolean;
+  date?: string;
 
 };
 export type CrashOptions = {
@@ -61,9 +59,8 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   const visibleBets = bets.filter(b => b.isVisible !== false);
   const [totalWin, setTotalWin] = useState(0);
   const userHasBet = totalBetAmount > 0;
-  // 🔹 1️⃣ Crxeate new fake players ONLY during wait phase
   useEffect(() => {
-    if (!isRunning) {   // means currently waiting
+    if (!isRunning) {
       const randomBets: Bet[] = Array.from({ length: 9 }).map((_, i) => ({
         id: `user${i}`,
         user: `User${Math.floor(Math.random() * 1000)}`,
@@ -75,7 +72,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
         isVisible: true,
       }));
 
-      // Include your "You"
       setBets(prev => {
         const mine = prev.find(p => p.isMine) || {
           id: "you",
@@ -98,10 +94,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     const betTotal = totalBetAmountState;
     const cashoutTotal = withdrawCash || 0;
     const system = betTotal - cashoutTotal;
-    //check user bet on it than this logic works 
-    // fly upto 100x 
-    //we have to show the users that u earn upto 100x if we show them that u earn only 2x or own logic then he will not interested.
-    //so show him 100x but when he bet on it, then implement our 70%-30% logic 
     console.log("========== SYSTEM SUMMARY ==========");
     console.log("Total Bet Amount:", betTotal);
     console.log("Cashout Total:", cashoutTotal);
@@ -109,11 +101,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     console.log("====================================");
   }, [totalBetAmountState, withdrawCash]);
 
-  // use if else 
-  //if they bet 
-  // 70 - 30
-  //else 
-  // 100x
 
   useEffect(() => {
     if (isRunning) return;
@@ -158,7 +145,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     }
   }, [bets]);
 
-  // Auto cashout simulation (only a few users)
   useEffect(() => {
     if (!isRunning) return;
 
@@ -168,7 +154,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
       const willCashout = Math.random() < 0.8;
 
       if (willCashout && b.multiplierTarget && liveMultiplier >= b.multiplierTarget) {
-        const delay = Math.random() * 300; // short random delay for realism
+        const delay = Math.random() * 300;
         setTimeout(() => {
           setBets(prev =>
             prev.map(p =>
@@ -206,7 +192,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     setTotalWin(sum);
   }, [bets]);
 
-  // Render bet row
   const renderBet = ({ item }: { item: Bet }) => {
     const bgColor = item.cashout !== undefined ? "#1F320D" : "#101112";
     {
@@ -215,7 +200,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
     return (
       <View style={[styles.row, { backgroundColor: bgColor }]}>
-        {/* Player info */}
         <View style={styles.playerCell}>
           <Image
             source={{ uri: item.avatar }}
@@ -225,7 +209,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           <Text style={styles.cell}>{item.user}</Text>
         </View>
 
-        {/* Bet, Multiplier, Win */}
         <Text style={styles.betCell}>{item.bet.toFixed(2)}</Text>
         <Text style={styles.multCell}>
           {item.multiplier !== undefined ? `${item.multiplier.toFixed(2)}x` : ` `}
@@ -242,7 +225,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Top Tabs */}
       <View style={styles.tabRow}>
         {["All Bets", "Previous", "Top"].map((tab) => (
           <TouchableOpacity
@@ -259,15 +241,10 @@ const BetHistory: React.FC<BetHistoryProps> = ({
         ))}
       </View>
 
-      {/* All Bets */}
       {activeTab === "All Bets" && (
         <View style={{ flex: 1 }}>
-          {/* Info Box */}
-          {/* Info Box */}
           <View style={styles.infoBox}>
-            {/* Top row */}
             <View style={styles.infoRow}>
-              {/* Left side (avatars + counter) */}
               <View style={styles.infoBoxLeft}>
                 <View style={styles.avatars}>
                   <Image source={{ uri: "https://i.pravatar.cc/50?img=1" }} style={styles.avatar} />
@@ -277,14 +254,12 @@ const BetHistory: React.FC<BetHistoryProps> = ({
                 <Text style={styles.counter}>{bets.length}/10 Bets</Text>
               </View>
 
-              {/* Right side (total win) */}
               <View style={styles.infoBoxRight}>
                 <Text style={styles.total}>{totalWin.toFixed(2)}</Text>
                 <Text style={styles.totalLabel}>Total win INR</Text>
               </View>
             </View>
 
-            {/* Progress Bar inside infobox */}
             <View style={styles.progressWrapper}>
               <View
                 style={[
@@ -296,7 +271,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           </View>
 
 
-          {/* Table Header */}
           <View style={styles.headerRow}>
             <Text style={styles.header}>Player</Text>
             <Text style={styles.header}>Bet INR</Text>
@@ -304,7 +278,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
             <Text style={styles.header}>Win INR</Text>
           </View>
 
-          {/* Bets List */}
           <View style={styles.listWrapper}>
             <FlatList
               data={visibleBets}
@@ -316,23 +289,19 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           </View>
         </View>
       )}
-      {/* Previous Bets */}
       {activeTab === "Previous" && (
         <View style={{ flex: 1 }}>
-          {/* Round Result Box */}
           <View style={styles.roundResultBox}>
             <Text style={styles.roundLabel}>Round Result</Text>
             <Text style={styles.roundValue}>2.64x</Text>
           </View>
 
-          {/* Table Header */}
           <View style={styles.headerRow}>
             <Text style={[styles.header, { flex: 2 }]}>Player</Text>
             <Text style={[styles.header, { flex: 1, textAlign: "right" }]}>Bet INR</Text>
             <Text style={[styles.header, { flex: 1, textAlign: "center" }]}>X</Text>
             <Text style={[styles.header, { flex: 1, textAlign: "right" }]}>Win INR</Text>
           </View>
-          {/* Bets List */}
           <FlatList
             data={visibleBets}
             keyExtractor={(item) => item.id}
@@ -342,12 +311,9 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           />
         </View>
       )}
-      {/* Top Filters */}
       {activeTab === "Top" && (
         <View style={{ flex: 1 }}>
-          {/* ----- Top Filters (fixed above) ----- */}
           <View style={styles.filterBox}>
-            {/* Filter Row */}
             <View style={styles.filterRow}>
               {["X", "Win", "Rounds"].map((f) => (
                 <TouchableOpacity
@@ -367,7 +333,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
               ))}
             </View>
 
-            {/* Period Row */}
             <View style={styles.filterRow}>
               {["Day", "Month", "Year"].map((p) => (
                 <TouchableOpacity
@@ -388,7 +353,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
             </View>
           </View>
 
-          {/* ----- FlatList (scrollable content) ----- */}
           <View style={styles.output}>
             <FlatList
               data={bets}
@@ -396,11 +360,9 @@ const BetHistory: React.FC<BetHistoryProps> = ({
               showsVerticalScrollIndicator
               contentContainerStyle={{ paddingVertical: 8, paddingBottom: 40 }}
               renderItem={({ item }) => {
-                // shared UI for Win / X mode
                 if (filter === "Win" || filter === "X") {
                   return (
                     <View style={styles.card}>
-                      {/* Top Row */}
                       <View style={styles.topRow}>
                         <View style={styles.userSection}>
                           <Image source={{ uri: item.avatar }} style={styles.avatar} />
@@ -420,7 +382,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
                         </View>
                       </View>
 
-                      {/* Bottom Info */}
                       <View style={styles.bottomRow}>
                         <View style={styles.leftCol}>
                           <View style={styles.infoRow}>
@@ -448,7 +409,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
                   );
                 }
 
-                // Rounds view
                 if (filter === "Rounds") {
                   return (
                     <View style={styles.roundsRow}>
@@ -467,7 +427,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           </View>
         </View>
       )}
-      {/* ✅ FOOTER */}
       <View style={styles.footer}>
         <View style={styles.footerTop}>
           <MaterialIcons
@@ -488,7 +447,6 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   );
 };
 
-// STYLES
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#1B1C1E",
@@ -500,12 +458,11 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   prevListWrapper: {
-    flex: 1,          // fills remaining space in the “Previous Bets” view
+    flex: 1,
     overflow: "hidden",
-    maxHeight: 250,   // optional – controls visible list height
+    maxHeight: 250,
   },
 
-  /* ---------- Footer ---------- */
   footer: {
     alignItems: "center",
     justifyContent: "center",
@@ -563,7 +520,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   roundMult: {
-    color: "#b026ff", // purple highlight
+    color: "#b026ff",
     fontSize: 14,
     fontWeight: "600",
     textAlign: "right",
@@ -591,27 +548,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
   },
   betText: {
-    color: "#fff",        // white for bet
+    color: "#fff",
     fontSize: 12,
     marginBottom: 2,
   },
 
   winText: {
-    color: "#fff",        // white for win
+    color: "#fff",
     fontSize: 12,
     marginBottom: 4,
   },
 
   resultText: {
-    color: "#b026ff",     // purple highlight for Result
+    color: "#b026ff",
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 2,
-    textAlign: "right",   // align to right if needed
+    textAlign: "right",
   },
 
   roundText: {
-    color: "#b026ff",     // purple highlight for Round max
+    color: "#b026ff",
     fontSize: 12,
     fontWeight: "600",
     textAlign: "right",
@@ -631,7 +588,6 @@ const styles = StyleSheet.create({
   topLeft: {
     flexDirection: "row",
     alignItems: "center",
-    // backgroundColor: "#ffffffff",
     flex: 1,
   },
 
@@ -670,7 +626,7 @@ const styles = StyleSheet.create({
   },
 
   resultValue: {
-    color: "#ba44ffff", // purple highlight
+    color: "#ba44ffff",
     fontSize: 11,
     fontWeight: "600",
     flex: 1,
@@ -786,7 +742,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   roundValue: {
-    color: "#ff00c3ff", // purple-ish (like your screenshot)
+    color: "#ff00c3ff",
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 2,

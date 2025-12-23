@@ -1,162 +1,167 @@
-// src/components/Header.tsx
-
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"; // back icon
-import FontAwesome from "react-native-vector-icons/FontAwesome"; // star icon
+import Ionicons from "react-native-vector-icons/Ionicons";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import DepositModal from "./Deposit/DepositModal";
-type Props = { balance: number; onPressTestBet?: () => void; };
-import { useTotalBet } from "../context/BalanceContext";
 import DepositWallet from "./Deposit/DepositWallet";
-import type { PaymentMethod } from "./Deposit/DepositModal";
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import ProfileScreen from "./profile/profilesscree";
+import { useTotalBet } from "../context/BalanceContext";
+import ProfileScreen from "./profile/profilesscree"; // Fixed typo in import if needed
+
+// Define types locally if not exported
+type PaymentMethod = any;
 
 export default function Header() {
   const [walletVisible, setWalletVisible] = useState(false);
-  const [isYellow, setIsYellow] = useState(false);
   const [ProfileVisible, setProfileVisible] = useState(false);
   const { balance } = useTotalBet();
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+
   return (
     <View style={styles.container}>
-      {/* Left Section */}
-      <View style={styles.left}>
-        {/* Left Section */}
+
+      {/* --- LEFT: Back Button --- */}
+      <TouchableOpacity
+        style={styles.leftButton}
+        onPress={() => setProfileVisible(true)}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="chevron-back" size={20} color="#fff" />
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
+
+      {/* --- RIGHT GROUP: Balance + Deposit + Star --- */}
+      <View style={styles.rightSection}>
+
+        {/* Balance Text Block */}
+        <View style={styles.balanceContainer}>
+          <View style={styles.currencyRow}>
+            <Text style={styles.currencyText}>INR</Text>
+            <MaterialIcons name="keyboard-arrow-down" size={14} color="#8E8E93" />
+          </View>
+          <Text style={styles.balanceText}>
+            {(balance ?? 0).toFixed(2)}
+          </Text>
+        </View>
+
+        {/* Deposit Button */}
         <TouchableOpacity
-          style={styles.left}
-          onPress={() => setProfileVisible(true)}  // or your back logic
-          activeOpacity={0.7}
+          style={styles.depositBtn}
+          onPress={() => setWalletVisible(true)}
+          activeOpacity={0.8}
         >
-          <Ionicons
-            name="chevron-back-outline"
-            size={18}
-            color="#c7c7c7ff"
-          />
-          <Text style={styles.backText}>Profile</Text>
-        </TouchableOpacity>
-
-      </View>
-
-      <Text style={[styles.centerText, { textAlign: 'right' }]}>
-        <Text style={{ color: '#a0a0a0ff' }}>INR
-          <Icon
-            name="keyboard-arrow-down"
-            size={14}
-            color="#a0a0a0ff"
-            style={{
-              marginLeft: 2,
-              alignSelf: 'center', // centers vertically in parent
-              paddingTop: 0,       // remove this
-            }}
-          />
-
-          {'\n'} </Text>
-        <Text style={{ color: '#fff', fontSize: 11, fontFamily: 'CrimsonPro-Bold' }}>
-          {(balance ?? 0).toFixed(2)}
-        </Text>
-      </Text>
-
-
-      {/* Right Section */}
-      <View style={styles.right}>
-        <TouchableOpacity style={styles.depositBtn} onPress={() => setWalletVisible(true)}>
-
           <Text style={styles.depositText}>Deposit</Text>
         </TouchableOpacity>
-        <Modal visible={walletVisible} animationType="slide" transparent>
-          {selectedMethod ? (
-            <DepositWallet
-              method={selectedMethod}
-              onBack={() => setSelectedMethod(null)}
-              onClose={() => setWalletVisible(false)}
-              onDeposit={(amount) => console.log("Deposited:", amount)}
-            />
-          ) : (
-            <DepositModal
-              onClose={() => setWalletVisible(false)}
-              onSelectMethod={(method) => setSelectedMethod(method)}
-            />
-          )}
-        </Modal>
+
+        {/* Star Button */}
         <TouchableOpacity
-          style={styles.starWrapper}
-          onPress={() => setIsYellow(!isYellow)}  // toggle color
+          style={styles.starBtn}
           activeOpacity={0.7}
         >
-          <FontAwesome
-            name="star"
-            size={18}
-            color={isYellow ? '#FFD700' : '#FFFFFF'}  // yellow or white
-          />
+          <FontAwesome name="star" size={14} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={ProfileVisible}
-        animationType="slide"
-        transparent={false}
-      >
-        <ProfileScreen onClose={() => setProfileVisible(false)} />
+      {/* --- MODALS --- */}
+      <Modal visible={walletVisible} animationType="slide" transparent>
+        {selectedMethod ? (
+          <DepositWallet
+            method={selectedMethod}
+            onBack={() => setSelectedMethod(null)}
+            onClose={() => setWalletVisible(false)}
+            onDeposit={(amount) => console.log("Deposited:", amount)}
+          />
+        ) : (
+          <DepositModal
+            onClose={() => setWalletVisible(false)}
+            onSelectMethod={(method) => setSelectedMethod(method)}
+          />
+        )}
       </Modal>
 
+      <Modal visible={ProfileVisible} animationType="slide" transparent={false}>
+        <ProfileScreen onClose={() => setProfileVisible(false)} />
+      </Modal>
 
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 40,
-    justifyContent: "space-between",
+    justifyContent: "space-between", // Pushes Left and Right apart
+    paddingTop: 50, // Adjusted for status bar
+    paddingBottom: 15,
     paddingHorizontal: 15,
-    paddingVertical: 15,
-    backgroundColor: "#141414ff", // Header background
+    backgroundColor: "#191919", // Exact dark grey from image
   },
-  left: {
+
+  // --- Left Side ---
+  leftButton: {
     flexDirection: "row",
     alignItems: "center",
   },
   backText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "700",
-    marginLeft: 10,
-    fontFamily: "StackSansText-Regular",
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 4,
+    // System font looks closest to the image
   },
-  centerText: {
-    color: "#afafafff",
-    fontSize: 11,
-    fontFamily: "Poppins-Regular",
-    marginLeft: 88,
-  },
-  right: {
+
+  // --- Right Side Group ---
+  rightSection: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10, // RN 0.71+ supports `gap`
+    gap: 12, // Consistent spacing between Balance, Deposit, and Star
   },
+
+  // Balance
+  balanceContainer: {
+    alignItems: "flex-end", // Aligns text to the right
+    justifyContent: "center",
+    marginRight: 4,
+  },
+  currencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyText: {
+    color: "#8E8E93", // Light grey
+    fontSize: 10,
+    fontWeight: "700",
+    marginRight: 2,
+  },
+  balanceText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700", // Bold font matches image
+    lineHeight: 18,
+  },
+
+  // Deposit Button
   depositBtn: {
-    backgroundColor: "#00B24C",
-    borderRadius: 10,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    backgroundColor: "#00C853", // Bright Green
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
   },
   depositText: {
-    color: "white",
-    fontSize: 12,
-    fontFamily: "Ramabhadra-Regular", // 👈 use loaded custom font
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
   },
 
-
-  starWrapper: {
-    width: 30,
-    height: 30,
-    borderRadius: 5,
-    backgroundColor: "#181818ff",
+  // Star Button
+  starBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#2C2C2E", // Darker grey square
     alignItems: "center",
     justifyContent: "center",
   },
-}); 
+});
