@@ -7,6 +7,7 @@ import InfoModal from "./InfoModal";
 import DepositModal from "./Deposit/DepositModal";
 import { useTotalBet } from "../context/BalanceContext";
 import DepositScreen from "./Deposit/DepositScreen";
+import { useEarnings } from "../context/EarningsContext";
 
 type Props = {
   id: number;
@@ -25,7 +26,6 @@ type Props = {
   openDepositModal?: () => void; // <-- optional deposit modal
 
 };
-
 
 
 const BetBox: React.FC<Props> = ({
@@ -99,17 +99,27 @@ const BetBox: React.FC<Props> = ({
       setRoundBetPlaced(false); // reset for next round
     }
   }, [isRunning]);
+  // ... inside BetBox.tsx
+
   useEffect(() => {
+    // When the game stops (Crash) or restarts (Loading)
     if (!isRunning) {
-      // new round about to start – queued bets become active
+      
       if (queuedNextRound) {
+        // 1. If we queued a bet, make it active now
         setHasBet(true);
         setQueuedNextRound(false);
+        // 2. CRITICAL FIX: Actually tell the game we placed a bet
+        onPlaceBet?.(amount); 
       } else {
+        // 3. Otherwise, reset bet state
         setHasBet(false);
       }
+      
+      setHasCashedOut(false);
+      setRoundBetPlaced(false);
     }
-  }, [isRunning]);
+  }, [isRunning]); // Removed queuedNextRound from dependency array to avoid loops, or handle carefully
 
 
 
@@ -392,7 +402,6 @@ const styles = StyleSheet.create({
     fontFamily: "Barlow-Medium"
   },
   amount: {
-    fontSize: 20,
     color: '#ddd',
   },
   switchWrapper: {

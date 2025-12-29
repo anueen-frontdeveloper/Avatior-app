@@ -74,7 +74,7 @@ export default function Header() {
       </View>
 
       {/* --- MODALS --- */}
-      <Modal visible={walletVisible} animationType="slide" transparent>
+      <Modal visible={walletVisible} animationType="fade" transparent>
         {selectedMethod ? (
           <DepositWallet
             method={selectedMethod}
@@ -90,7 +90,7 @@ export default function Header() {
         )}
       </Modal>
 
-      <Modal visible={ProfileVisible} animationType="slide" transparent={false}>
+      <Modal visible={ProfileVisible} animationType="fade" transparent={false}>
         <ProfileScreen onClose={() => setProfileVisible(false)} />
       </Modal>
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     paddingTop: 50, // Adjust for status bar
     paddingBottom: 15,
     paddingHorizontal: 15,
-    backgroundColor: "#191919", // Dark Grey background
+    backgroundColor: "#141414ff", // Dark Grey background
   },
 
   // --- LEFT SIDE ---

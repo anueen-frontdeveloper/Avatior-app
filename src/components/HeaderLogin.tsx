@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
       paddingTop: 50, // Matches main header status bar spacing
       paddingBottom: 15,
       paddingHorizontal: 15,
-      backgroundColor: "#191919", // Consistent Dark Background
+      backgroundColor: "#141414ff", // Consistent Dark Background
     },
   
     // --- Left ---

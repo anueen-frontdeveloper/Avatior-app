@@ -1,8 +1,12 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Image, Animated } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, StyleSheet, Image, Animated, Modal,Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "./App"; 
+import { RootStackParamList } from "./App";
+import Ionicons from "react-native-vector-icons/Ionicons";
+
+import { useAuth } from "./src/context/AuthContext";
+import HeaderLogin from "./src/components/HeaderLogin";
 // import HeaderLogin from "./src/components/Header";
 import { useTotalBet } from "./src/context/BalanceContext";
 import Header from "./src/components/Header";
@@ -13,12 +17,25 @@ type LoadingScreenNavigationProp = NativeStackNavigationProp<
 
 const Loading = () => {
   const navigation = useNavigation<LoadingScreenNavigationProp>();
-  
+
   // Create 3 individual animated values starting at Scale 1
   const scale1 = useRef(new Animated.Value(1)).current;
   const scale2 = useRef(new Animated.Value(1)).current;
   const scale3 = useRef(new Animated.Value(1)).current;
+  const { isLoggedIn, setShowRegister } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(false);
 
+  useEffect(() => {
+    if (isLoggedIn) {
+      setShowWelcome(true);
+      const timer = setTimeout(() => setShowWelcome(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn]);
+
+  const handleGuestClick = () => {
+    setShowRegister(true);
+  };
   useEffect(() => {
     const duration = 200; // Speed of the transition
 
@@ -67,7 +84,7 @@ const Loading = () => {
             duration: duration,
             useNativeDriver: true,
           }),
-          
+
           // Optional: Tiny pause before restarting
           Animated.delay(100),
         ])
@@ -86,7 +103,8 @@ const Loading = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      {isLoggedIn ? <Header /> : <HeaderLogin />}
+
 
       <View style={styles.centerContent}>
         <Image
@@ -103,6 +121,17 @@ const Loading = () => {
           <Animated.View style={[styles.ball, { transform: [{ scale: scale3 }] }]} />
         </View>
       </View>
+      <Modal visible={showWelcome} transparent animationType="fade">
+        <View style={styles.welcomeOverlay}>
+          <View style={styles.welcomeBox}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="checkmark" size={40} color="#fff" />
+            </View>
+            <Text style={styles.welcomeTitle}>Welcome!</Text>
+            <Text style={styles.welcomeSub}>You have successfully logged in.</Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -118,7 +147,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  }, 
+  },
   logo: {
     marginBottom: 30,
   },
@@ -129,6 +158,42 @@ const styles = StyleSheet.create({
     width: 100,
     gap: 15, // Space between balls
     height: 30, // Fixed height to prevent layout jumping when balls grow
+  },
+  welcomeOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  welcomeBox: {
+    width: 280,
+    backgroundColor: "#191919",
+    borderRadius: 20,
+    padding: 25,
+    alignItems: "center",
+    elevation: 10,
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  iconCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#00C853",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  welcomeTitle: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  welcomeSub: {
+    color: "#888",
+    fontSize: 14,
+    textAlign: "center",
   },
   ball: {
     width: 12,  // All balls start same size

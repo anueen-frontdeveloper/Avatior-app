@@ -51,6 +51,7 @@ const SettingsPopout: React.FC<Props> = ({
   const [testBetVisible, setTestBetVisible] = useState(false);
   const [changeNameVisible, setChangeNameVisible] = useState(false);
   const { userData, updateUser } = useUser();
+  const [ProfileVisible, setProfileVisible] = useState(false);
 
   const slideAnim = useRef(new Animated.Value(width)).current;
   const [player, setPlayer] = useState<Sound | null>(null);

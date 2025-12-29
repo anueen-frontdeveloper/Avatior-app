@@ -13,6 +13,7 @@ import { UserProvider } from './src/context/UserContext';
 import 'react-native-reanimated';
 import { AuthProvider } from "./src/context/AuthContext";
 import { GameProvider } from "./src/context/GameContext";
+import { EarningsProvider } from './src/context/EarningsContext';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -39,17 +40,17 @@ export default function App() {
           <UserProvider>
             <GameProvider>
 
-              <NavigationContainer>
-                <Stack.Navigator screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="Splash" component={SplashScreen} />
-                  <Stack.Screen name="loading" component={Loading} />
-                  <Stack.Screen name="Home" component={HomeScreen} />
-                </Stack.Navigator>
-              </NavigationContainer>
+                <NavigationContainer>
+                  <Stack.Navigator screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="Splash" component={SplashScreen} />
+                    <Stack.Screen name="loading" component={Loading} />
+                    <Stack.Screen name="Home" component={HomeScreen} />
+                  </Stack.Navigator>
+                </NavigationContainer>
             </GameProvider>
           </UserProvider>
         </BalanceProvider>
       </SoundProvider>
-    </AuthProvider>
+    </AuthProvider >
   );
 }
