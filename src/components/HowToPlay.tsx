@@ -1,3 +1,5 @@
+// src/components/HowToPlay.tsx
+
 import React from "react";
 import {
     View,

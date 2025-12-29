@@ -1,3 +1,5 @@
+// src/types/index.ts
+
 export type Bet = {
   id: string;
   user: string;        // username or user id

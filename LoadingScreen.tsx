@@ -76,7 +76,7 @@ const Loading = () => {
 
     animate();
 
-    // Navigate to Home after 3 seconds
+    // Navigate to Home after 3 seconds   
     const timer = setTimeout(() => {
       navigation.replace("Home");
     }, 3000);

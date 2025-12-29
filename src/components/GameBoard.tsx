@@ -1,3 +1,5 @@
+// src/components/GameBoard.tsx
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -69,15 +71,22 @@ export default function BalloonThread({
     getCrashPoint({ totalBetAmount: 1000, cashouttotal: totalWinUser })
   );
 
-  const animatedThreadProps = useAnimatedProps(() => {
+  // Prop for the RED LINE (Curve only)
+  const animatedStrokeProps = useAnimatedProps(() => {
+    const midX = (cx.value + points[0].x) / 1.2 + sway.value;
+    const midY = (cy.value + points[0].y) / 3 + 50;
+    const d = `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y}`;
+    return { d, opacity: isCrashing.value ? 0 : 1 };
+  });
+
+  // Prop for the FILL (Curve + Bottom + Vertical Wall)
+  const animatedFillProps = useAnimatedProps(() => {
     const midX = (cx.value + points[0].x) / 1.2 + sway.value;
     const midY = (cy.value + points[0].y) / 3 + 50;
     const threadD = `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y}`;
-    const d = `${threadD} L${midX},${HEIGHT}`;
-    return {
-      d,
-      opacity: isCrashing.value ? 0 : 1,
-    };
+    // Close the shape for the vertical fill
+    const d = `${threadD} L${points[0].x},${HEIGHT} L${cx.value},${HEIGHT} Z`;
+    return { d, opacity: isCrashing.value ? 0 : 1 };
   });
   useEffect(() => {
     crashPoint.value = getCrashPoint({
@@ -308,20 +317,28 @@ export default function BalloonThread({
           )}
 
           <Svg width={width} height={HEIGHT} viewBox={`10 -10 ${width} ${HEIGHT}`}>
+            {/* 1. The Fill (Background Area) */}
             <AnimatedPath
-              animatedProps={animatedThreadProps}
+              animatedProps={animatedFillProps}
+              fill="#d1000098" // The semi-transparent red fill
+              stroke="none"    // No border on the fill
+            />
+
+            {/* 2. The Line (Top Curve) */}
+            <AnimatedPath
+              animatedProps={animatedStrokeProps}
               stroke="#ff0037ff"
               strokeWidth={6}
               strokeLinecap="round"
-              fill="#d1000098"
+              fill="none"      // No fill on the line
             />
+
             <Animated.View style={animatedPlaneStyle}>
               <FastImage
                 source={require("../../assets/Aviator.gif")}
                 style={{ width: 120, height: 120 }}
               />
             </Animated.View>
-
           </Svg>
           {showCrash && (
             <View style={styles.crashOverlay}>
@@ -354,7 +371,6 @@ export default function BalloonThread({
       />    </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#292929ff",

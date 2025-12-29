@@ -14,12 +14,13 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import Sound from 'react-native-sound';
 Sound.setCategory('Playback');
 import AvatarModal from "./AvatarModal";
-import BetHistoryModal from "./BetHistoryModal"; // 👈 path to your modal file
+import BetHistoryModal from "./BetHistoryModal";
 import GameLimits from "./GameLimits";
 import HowToPlay from "./HowToPlay";
 import GameRules from "./GameRules";
 import ProvablyFairModal from "./ProvablyFairModal";
 import TestBetsModal from "./TestBetsModal";
+
 import { useSound } from "../context/SoundContext";
 import ChangeNameModal from "./ChangeNameModal";
 
@@ -46,12 +47,12 @@ const SettingsPopout: React.FC<Props> = ({
   const [howToPlayVisible, setHowToPlayVisible] = useState(false);
   const [gameRulesVisible, setGameRulesVisible] = useState(false);
   const [provablyFairVisible, setProvablyFairVisible] = useState(false);
-  const [selectedAvatar, setSelectedAvatar] = useState("https://i.pravatar.cc/60"); // default avatar
-  const [testBetVisible, setTestBetVisible] = useState(false); // ✅ new system‑info toggle
+  const [selectedAvatar, setSelectedAvatar] = useState("https://i.pravatar.cc/60");
+  const [testBetVisible, setTestBetVisible] = useState(false);
   const [changeNameVisible, setChangeNameVisible] = useState(false);
   const { userData, updateUser } = useUser();
 
-  const slideAnim = useRef(new Animated.Value(width)).current; // starts off-screen right
+  const slideAnim = useRef(new Animated.Value(width)).current;
   const [player, setPlayer] = useState<Sound | null>(null);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ const SettingsPopout: React.FC<Props> = ({
     setPlayer(sound);
 
     return () => {
-      sound.release(); // clean up on unmount
+      sound.release();
     };
   }, []);
 
@@ -93,17 +94,15 @@ const SettingsPopout: React.FC<Props> = ({
         { transform: [{ translateX: slideAnim }] },
       ]}
     >
-      {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.userSection}>
-              <Image
-                source={{ uri: selectedAvatar }}
-                style={styles.avatar}
-              />
-                <Text style={styles.username} numberOfLines={1}>{userData.name}</Text>
-            </View>
+      <View style={styles.header}>
+        <View style={styles.userSection}>
+          <Image
+            source={{ uri: selectedAvatar }}
+            style={styles.avatar}
+          />
+          <Text style={styles.username} numberOfLines={1}>{userData.name}</Text>
+        </View>
 
-        {/* Right Side: Change Avatar Button */}
         <TouchableOpacity
           style={styles.changeAvatarBtn}
           onPress={() => setAvatarVisible(true)}
@@ -121,7 +120,6 @@ const SettingsPopout: React.FC<Props> = ({
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Toggles */}
         <View style={styles.row}>
           <Ionicons name="volume-high-outline" size={20} color="#ccc" />
           <Text style={styles.label}>Sound</Text>
@@ -138,7 +136,7 @@ const SettingsPopout: React.FC<Props> = ({
             onValueChange={(val) => {
               setMusic(val);
               if (val) {
-                player?.setNumberOfLoops(-1); // loop forever
+                player?.setNumberOfLoops(-1);
                 player?.play();
               } else {
                 player?.pause();
@@ -163,29 +161,29 @@ const SettingsPopout: React.FC<Props> = ({
 
           <TouchableOpacity
             style={styles.menuItem}
-          // onPress={() => setTestBetVisible(true)} // open modal
+            onPress={() => setTestBetVisible(true)}
           >
             <Ionicons name="gift-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>FREE Bets</Text>
           </TouchableOpacity>
-          {/* <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} /> */}
+          <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} />
 
 
           <TouchableOpacity
             style={styles.menuItem}
-          // onPress={() => setHistoryVisible(true)}
+            onPress={() => setHistoryVisible(true)}
           >            <Ionicons name="document-text-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>My Bet History</Text>
           </TouchableOpacity>
-          {/* <BetHistoryModal
+          <BetHistoryModal
             visible={historyVisible}
             onClose={() => setHistoryVisible(false)}
-          /> */}
+          />
 
 
           <TouchableOpacity
             style={styles.menuItem}
-          // onPress={() => setGameLimitsVisible(true)}
+            onPress={() => setGameLimitsVisible(true)}
           >
             <Ionicons name="cash-outline" size={18} color="#ccc" />
             <Text style={styles.menuText}>Game Limits</Text>
@@ -209,21 +207,19 @@ const SettingsPopout: React.FC<Props> = ({
         </View>
       </ScrollView>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <Ionicons name="home-outline" size={18} color="#ccc" />
         <Text style={styles.footerText}>Home</Text>
       </View>
-      {/* <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} /> */}
+      <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} />
       <ChangeNameModal visible={changeNameVisible} onClose={() => setChangeNameVisible(false)} />
 
       <HowToPlay visible={howToPlayVisible} onClose={() => setHowToPlayVisible(false)} />
 
       <GameRules visible={gameRulesVisible} onClose={() => setGameRulesVisible(false)} />
 
-      {/* <ProvablyFairModal visible={provablyFairVisible} onClose={() => setProvablyFairVisible(false)} /> */}
+      <ProvablyFairModal visible={provablyFairVisible} onClose={() => setProvablyFairVisible(false)} />
 
-      {/* Close button */}
       <TouchableOpacity style={styles.backdrop} onPress={onClose} activeOpacity={1} />
 
     </Animated.View>
@@ -235,23 +231,23 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 44,
     right: 0,
-    width: width * 0.90, // 75% screen width
+    width: width * 0.90,
     marginRight: 20,
     backgroundColor: "#2C2E2F",
-    zIndex: 1000,
+    zIndex: 999,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", // Pushes Name left, Button right
+    justifyContent: "space-between",
     padding: 15,
     marginBottom: 10,
   },
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1, // Takes up available space to push button to the right
-    marginRight: 10, // Small gap before the button
+    flex: 1,
+    marginRight: 10,
   },
   group: { marginTop: 18 },
   backdrop: {
@@ -275,7 +271,7 @@ const styles = StyleSheet.create({
   changeAvatarText: {
     color: "#a0a0a0ff",
     fontFamily: "Arial",
-    fontSize: 11, // Slightly smaller to fit better
+    fontSize: 11,
     marginLeft: 6,
     textAlign: 'left',
   },

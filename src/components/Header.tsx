@@ -32,7 +32,7 @@ export default function Header() {
         <Ionicons name="chevron-back" size={20} color="#fff" />
         {/* Using Roboto-Medium for navigation text */}
         <Text style={styles.backText}>Profile</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> 
 
       {/* --- Right Section: Balance, Deposit, Star --- */}
       <View style={styles.rightContainer}>

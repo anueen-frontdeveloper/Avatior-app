@@ -1,3 +1,5 @@
+// src/utils/system.ts
+
 export type PayoutResult = {
   userGain: number;   // what the player receives (full payout)
   systemGain: number; // the house share — now always 0

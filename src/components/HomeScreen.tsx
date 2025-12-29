@@ -1,10 +1,8 @@
-// src/components/HomeScreen.tsx
 
-import React, { useState, useEffect } from "react"; // <--- Import useEffect
+import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Modal, Image } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons"; // Ensure you have this
+import Ionicons from "react-native-vector-icons/Ionicons";
 
-// ... existing imports ...
 import Header from "./Header";
 import HeaderLogin from "./HeaderLogin";
 import BalanceHeader from "./BalanceHeader";
@@ -17,33 +15,29 @@ import { EarningsProvider } from "../context/EarningsContext";
 import { useAuth } from "../context/AuthContext";
 
 const HomeScreen: React.FC = () => {
-  // ... existing state ...
   const { balance } = useTotalBet();
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
   const [bets, setBets] = useState<Bet[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [liveMultiplier, setLiveMultiplier] = useState(1);
   const [multipliers, setMultipliers] = useState<string[]>([]);
-  
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   const { isLoggedIn, setShowRegister } = useAuth();
-  
-  // NEW STATE: Control Welcome Modal
+
   const [showWelcome, setShowWelcome] = useState(false);
 
-  // 1. LISTEN FOR LOGIN SUCCESS
   useEffect(() => {
     if (isLoggedIn) {
-      // User just logged in (via Social or Email)
       setShowWelcome(true);
 
-      // Hide Welcome screen after 2.5 seconds
       const timer = setTimeout(() => {
         setShowWelcome(false);
       }, 2500);
 
       return () => clearTimeout(timer);
     }
-  }, [isLoggedIn]); // <--- Runs whenever isLoggedIn changes
+  }, [isLoggedIn]);
 
   const handleGuestClick = () => {
     setShowRegister(true);
@@ -52,15 +46,17 @@ const HomeScreen: React.FC = () => {
   return (
     <EarningsProvider>
       <View style={styles.mainWrapper}>
-        <ScrollView 
-          style={styles.container} 
-          contentContainerStyle={{ paddingBottom: 10 }} 
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: 10 }}
           stickyHeaderIndices={[0]}
+          scrollEnabled={!isPanelOpen}   // ⬅️ THIS IS THE KEY
+
         >
           {isLoggedIn ? <Header /> : <HeaderLogin />}
 
           <View style={styles.gameContent}>
-            <BalanceHeader />
+            <BalanceHeader onPanelToggle={setIsPanelOpen}/>
             <MultipliersBar multipliers={multipliers} />
             <GameBoard
               bets={bets}
@@ -72,17 +68,16 @@ const HomeScreen: React.FC = () => {
                 setMultipliers((prev) => [val.toFixed(2), ...prev].slice(0, 50));
               }}
             />
-            {/* ... BetBoxes and History ... */}
-             {betBoxes.map((id, index) => (
+            {betBoxes.map((id, index) => (
               <BetBox
                 key={id}
                 id={id}
                 balance={balance ?? 0}
                 liveMultiplier={liveMultiplier}
                 isRunning={isRunning}
-                onPlaceBet={() => {}}
-                onCashOut={() => {}}
-                onCancelBet={() => {}}
+                onPlaceBet={() => { }}
+                onCashOut={() => { }}
+                onCancelBet={() => { }}
                 onAdd={index === 0 && betBoxes.length < 2 ? () => {
                   setBetBoxes(prev => [...prev, prev.length + 1]);
                 } : undefined}
@@ -99,7 +94,6 @@ const HomeScreen: React.FC = () => {
               setBets={setBets}
             />
 
-            {/* Guest Blocker */}
             {!isLoggedIn && (
               <TouchableOpacity
                 style={styles.guestBlocker}
@@ -110,7 +104,6 @@ const HomeScreen: React.FC = () => {
           </View>
         </ScrollView>
 
-        {/* 2. THE WELCOME MODAL */}
         <Modal visible={showWelcome} transparent animationType="fade">
           <View style={styles.welcomeOverlay}>
             <View style={styles.welcomeBox}>
@@ -136,11 +129,10 @@ const styles = StyleSheet.create({
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 9999, backgroundColor: "transparent",
   },
-  
-  // --- Welcome Screen Styles ---
+
   welcomeOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.8)", // Dark background
+    backgroundColor: "rgba(0,0,0,0.8)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -158,7 +150,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#00C853", // Green circle
+    backgroundColor: "#00C853",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 15,

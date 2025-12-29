@@ -1,3 +1,5 @@
+// src/components/GameLimits.tsx
+
 import React from "react";
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Dimensions } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";

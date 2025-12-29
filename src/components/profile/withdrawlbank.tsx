@@ -18,6 +18,64 @@ interface WithdrawlBankProps {
     onBack: () => void;
     onClose: () => void;
 }
+const indianBanks = [
+    // Public Sector Banks
+    "State Bank of India",
+    "Punjab National Bank",
+    "Bank of Baroda",
+    "Canara Bank",
+    "Union Bank of India",
+    "Indian Bank",
+    "Central Bank of India",
+    "Indian Overseas Bank",
+    "UCO Bank",
+    "Bank of India",
+    "Punjab & Sind Bank",
+    "Bank of Maharashtra",
+
+    // Private Sector Banks
+    "HDFC Bank",
+    "ICICI Bank",
+    "Axis Bank",
+    "Kotak Mahindra Bank",
+    "IndusInd Bank",
+    "Yes Bank",
+    "IDFC First Bank",
+    "Federal Bank",
+    "RBL Bank",
+    "Bandhan Bank",
+    "City Union Bank",
+    "Karur Vysya Bank",
+    "South Indian Bank",
+    "Tamilnad Mercantile Bank",
+    "DCB Bank",
+    "Jammu & Kashmir Bank",
+    "Karnataka Bank",
+    "Nainital Bank",
+
+    // Small Finance Banks
+    "AU Small Finance Bank",
+    "Ujjivan Small Finance Bank",
+    "Equitas Small Finance Bank",
+    "Suryoday Small Finance Bank",
+    "Jana Small Finance Bank",
+    "ESAF Small Finance Bank",
+    "North East Small Finance Bank",
+    "Utkarsh Small Finance Bank",
+
+    // Payments Banks
+    "Airtel Payments Bank",
+    "India Post Payments Bank",
+    "Paytm Payments Bank",
+
+    // Foreign Banks (India)
+    "Citibank",
+    "HSBC Bank",
+    "Standard Chartered Bank",
+    "Deutsche Bank",
+    "DBS Bank",
+    "Barclays Bank"
+];
 
 export default function WithdrawlBank({ onBack, onClose }: WithdrawlBankProps) {
     const [amount, setAmount] = useState('1,200');
@@ -53,6 +111,7 @@ export default function WithdrawlBank({ onBack, onClose }: WithdrawlBankProps) {
                         <TouchableOpacity style={styles.inputWrapper}>
                             <Text style={styles.placeholderText}>Bank</Text>
                             <Icon name="chevron-down" size={20} color="#666" />
+                            
                         </TouchableOpacity>
 
                         <TextInput
