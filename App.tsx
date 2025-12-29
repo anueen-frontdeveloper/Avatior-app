@@ -12,6 +12,7 @@ import { SoundProvider } from './src/context/SoundContext';
 import { UserProvider } from './src/context/UserContext';
 import 'react-native-reanimated';
 import { AuthProvider } from "./src/context/AuthContext";
+import { GameProvider } from "./src/context/GameContext";
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -36,13 +37,16 @@ export default function App() {
         <StatusBar hidden={true} />
         <BalanceProvider>
           <UserProvider>
-            <NavigationContainer>
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Splash" component={SplashScreen} />
-                <Stack.Screen name="loading" component={Loading} />
-                <Stack.Screen name="Home" component={HomeScreen} />
-              </Stack.Navigator>
-            </NavigationContainer>
+            <GameProvider>
+
+              <NavigationContainer>
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="Splash" component={SplashScreen} />
+                  <Stack.Screen name="loading" component={Loading} />
+                  <Stack.Screen name="Home" component={HomeScreen} />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </GameProvider>
           </UserProvider>
         </BalanceProvider>
       </SoundProvider>

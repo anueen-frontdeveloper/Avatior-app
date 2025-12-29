@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from "react";
-import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Modal, Image } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Modal } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
 import Header from "./Header";
@@ -10,31 +9,54 @@ import MultipliersBar from "./MultipliersBar";
 import GameBoard from "./GameBoard";
 import BetBox from "./BetBox";
 import BetHistory, { Bet } from "./BetHistory";
+
 import { useTotalBet } from "../context/BalanceContext";
 import { EarningsProvider } from "../context/EarningsContext";
 import { useAuth } from "../context/AuthContext";
+import { useGame } from "../context/GameContext"; // <--- 1. IMPORT CONTEXT
 
 const HomeScreen: React.FC = () => {
   const { balance } = useTotalBet();
+  const { isLoggedIn, setShowRegister } = useAuth();
+  
+  // <--- 2. USE GLOBAL GAME STATE
+  const { history, status, getCurrentMultiplier } = useGame(); 
+
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
   const [bets, setBets] = useState<Bet[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [liveMultiplier, setLiveMultiplier] = useState(1);
-  const [multipliers, setMultipliers] = useState<string[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const { isLoggedIn, setShowRegister } = useAuth();
-
   const [showWelcome, setShowWelcome] = useState(false);
 
+  // Local state purely to update BetBox/BetHistory UI
+  const [liveMultiplier, setLiveMultiplier] = useState(1);
+  const isRunning = status === "RUNNING"; 
+
+  // <--- 3. SYNC LOOP: Bridge Global Context -> Local State for Child Components
+  useEffect(() => {
+    let rafId: number;
+
+    const syncLoop = () => {
+      if (status === "RUNNING") {
+        // Pull the exact number from context without causing lag
+        setLiveMultiplier(getCurrentMultiplier());
+        rafId = requestAnimationFrame(syncLoop);
+      } else if (status === "CRASHED") {
+        setLiveMultiplier(getCurrentMultiplier());
+      } else {
+        setLiveMultiplier(1);
+      }
+    };
+
+    syncLoop();
+    return () => cancelAnimationFrame(rafId);
+  }, [status, getCurrentMultiplier]);
+
+
+  // Welcome Modal Logic
   useEffect(() => {
     if (isLoggedIn) {
       setShowWelcome(true);
-
-      const timer = setTimeout(() => {
-        setShowWelcome(false);
-      }, 2500);
-
+      const timer = setTimeout(() => setShowWelcome(false), 2500);
       return () => clearTimeout(timer);
     }
   }, [isLoggedIn]);
@@ -50,40 +72,39 @@ const HomeScreen: React.FC = () => {
           style={styles.container}
           contentContainerStyle={{ paddingBottom: 10 }}
           stickyHeaderIndices={[0]}
-          scrollEnabled={!isPanelOpen}   // ⬅️ THIS IS THE KEY
-
+          scrollEnabled={!isPanelOpen}
         >
           {isLoggedIn ? <Header /> : <HeaderLogin />}
 
           <View style={styles.gameContent}>
-            <BalanceHeader onPanelToggle={setIsPanelOpen}/>
-            <MultipliersBar multipliers={multipliers} />
-            <GameBoard
-              bets={bets}
-              onUpdate={(val, running) => {
-                setLiveMultiplier(val);
-                setIsRunning(running);
-              }}
-              onCrash={(val) => {
-                setMultipliers((prev) => [val.toFixed(2), ...prev].slice(0, 50));
-              }}
-            />
+            <BalanceHeader onPanelToggle={setIsPanelOpen} />
+            
+            {/* 4. PASS GLOBAL HISTORY HERE */}
+            <MultipliersBar multipliers={history} />
+
+            {/* 5. REMOVED onUpdate/onCrash (Context handles it) */}
+            <GameBoard bets={bets} />
+
             {betBoxes.map((id, index) => (
               <BetBox
                 key={id}
                 id={id}
                 balance={balance ?? 0}
-                liveMultiplier={liveMultiplier}
-                isRunning={isRunning}
-                onPlaceBet={() => { }}
-                onCashOut={() => { }}
-                onCancelBet={() => { }}
-                onAdd={index === 0 && betBoxes.length < 2 ? () => {
-                  setBetBoxes(prev => [...prev, prev.length + 1]);
-                } : undefined}
-                onRemove={index === 1 ? () => {
-                  setBetBoxes(prev => prev.filter((_, i) => i !== index));
-                } : undefined}
+                liveMultiplier={liveMultiplier} // Passed from our Sync Loop
+                isRunning={isRunning}           // Derived from Context Status
+                onPlaceBet={() => {}}
+                onCashOut={() => {}}
+                onCancelBet={() => {}}
+                onAdd={
+                  index === 0 && betBoxes.length < 2
+                    ? () => setBetBoxes((prev) => [...prev, prev.length + 1])
+                    : undefined
+                }
+                onRemove={
+                  index === 1
+                    ? () => setBetBoxes((prev) => prev.filter((_, i) => i !== index))
+                    : undefined
+                }
               />
             ))}
 
@@ -115,7 +136,6 @@ const HomeScreen: React.FC = () => {
             </View>
           </View>
         </Modal>
-
       </View>
     </EarningsProvider>
   );
@@ -124,12 +144,16 @@ const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   mainWrapper: { flex: 1, backgroundColor: "#000" },
   container: { flex: 1, backgroundColor: "#111" },
-  gameContent: { position: 'relative' },
+  gameContent: { position: "relative" },
   guestBlocker: {
-    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    zIndex: 9999, backgroundColor: "transparent",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    backgroundColor: "transparent",
   },
-
   welcomeOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.8)",

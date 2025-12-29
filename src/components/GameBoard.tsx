@@ -1,16 +1,6 @@
-// src/components/GameBoard.tsx
-
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Image,
-  Text,
-
-} from "react-native";
-
-import Svg, { Path, Image as SvgImage } from "react-native-svg";
+import React, { useEffect } from "react";
+import { View, StyleSheet, Dimensions, Image, Text, TextInput } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import FastImage from "react-native-fast-image";
 import Animated, {
   useSharedValue,
@@ -20,535 +10,216 @@ import Animated, {
   cancelAnimation,
   useAnimatedProps,
   useAnimatedStyle,
-  useDerivedValue,
-  runOnJS,
   Easing,
+  useDerivedValue,
 } from "react-native-reanimated";
-import { getCrashPoint } from "../utils/getCrashPoint";
-import Sound from "react-native-sound";
-import { useSound } from "../context/SoundContext";
+import { useGame } from "../context/GameContext";
+
 const { width } = Dimensions.get("window");
 const HEIGHT = 215;
 const WIDTH = 300;
 
-type Props = {
-  onCrash?: (val: number) => void;
-  onUpdate?: (val: number, isRunning: boolean) => void;
-  bets?: any[];
-
-};
-
-
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-const AnimatedSvgImage = Animated.createAnimatedComponent(SvgImage);
 
-export default function BalloonThread({
-  onCrash,
-  onUpdate,
-  bets
-}: Props) {
+export default function BalloonThread({ bets }: { bets?: any[] }) {
+  const { status, crashPoint, countdown, getCurrentMultiplier } = useGame();
+
+  const multiplierAnim = useSharedValue(1);
+  const cx = useSharedValue(20);
+  const cy = useSharedValue(206);
+  const sway = useSharedValue(0);
+  const isCrashing = useSharedValue(false);
+  const progressAnim = useSharedValue(0);
+  const glow = useSharedValue(0); // Value 0 to 1 for pulsing
+
   const points = [{ x: 20, y: 206 }, { x: 225, y: 50 }];
   const loopStart = { x: 225, y: 50 };
   const loopEnd = { x: 270, y: 100 };
-  const riseDuration = 2500;
-  const glow = useSharedValue(1);
-
-  const progressAnim = useSharedValue(0);
-  const multiplier = useSharedValue(1);
-  const cx = useSharedValue(points[0].x);
-  const cy = useSharedValue(points[0].y);
-  const isCrashing = useSharedValue(false);
-
-  const sway = useSharedValue(0);
-
-  const [isRunning, setIsRunning] = useState(false);
-  const [showCrash, setShowCrash] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const { soundEnabled } = useSound();
-  const [totalWinUser, setTotalWinUser] = useState(0);
-
-  const crashPoint = useSharedValue(
-    getCrashPoint({ totalBetAmount: 1000, cashouttotal: totalWinUser })
-  );
-
-  // Prop for the RED LINE (Curve only)
-  const animatedStrokeProps = useAnimatedProps(() => {
-    const midX = (cx.value + points[0].x) / 1.2 + sway.value;
-    const midY = (cy.value + points[0].y) / 3 + 50;
-    const d = `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y}`;
-    return { d, opacity: isCrashing.value ? 0 : 1 };
-  });
-
-  // Prop for the FILL (Curve + Bottom + Vertical Wall)
-  const animatedFillProps = useAnimatedProps(() => {
-    const midX = (cx.value + points[0].x) / 1.2 + sway.value;
-    const midY = (cy.value + points[0].y) / 3 + 50;
-    const threadD = `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y}`;
-    // Close the shape for the vertical fill
-    const d = `${threadD} L${points[0].x},${HEIGHT} L${cx.value},${HEIGHT} Z`;
-    return { d, opacity: isCrashing.value ? 0 : 1 };
-  });
-  useEffect(() => {
-    crashPoint.value = getCrashPoint({
-      totalBetAmount: 1000,
-      cashouttotal: totalWinUser,
-    });
-  }, [totalWinUser]);
-
-  const animatedPlaneProps = useAnimatedProps(() => ({
-    x: cx.value - 20,
-    y: cy.value - 80,
-  }));
-  const animatedMultiplierText = useDerivedValue(() =>
-    `${multiplier.value.toFixed(2)}x`
-  );
-
-  const animatedMultiplierProps = useAnimatedProps(() => ({
-    text: animatedMultiplierText.value,
-  }));
-  const progressStyle = useAnimatedStyle(() => ({
-    width: `${progressAnim.value * 100}%`,
-  }));
 
   useEffect(() => {
-    if (!isRunning && countdown > 0) {
-      progressAnim.value = 0;
-      progressAnim.value = withTiming(1, {
-        duration: countdown * 1000,
-        easing: Easing.linear,
+    let rafId: number;
+
+    if (status === "RUNNING") {
+      isCrashing.value = false;
+
+      // Start Pulse for Glow
+      glow.value = withRepeat(withTiming(1, { duration: 800 }), -1, true);
+
+      // Plane Movement
+      cx.value = withTiming(points[1].x, { duration: 2500 });
+      cy.value = withTiming(points[1].y, { duration: 2500 }, () => {
+        cx.value = withRepeat(
+          withSequence(withTiming(loopEnd.x, { duration: 3000 }), withTiming(loopStart.x, { duration: 3000 })),
+          -1, true
+        );
+        cy.value = withRepeat(
+          withSequence(withTiming(loopEnd.y, { duration: 3000 }), withTiming(loopStart.y, { duration: 3000 })),
+          -1, true
+        );
       });
+      sway.value = withRepeat(withTiming(8, { duration: 1000 }), -1, true);
+
+      // Sync Loop
+      const tick = () => {
+        const val = getCurrentMultiplier();
+        multiplierAnim.value = val;
+        if (status === "RUNNING") rafId = requestAnimationFrame(tick);
+      };
+      tick();
+
+    } else if (status === "CRASHED") {
+      multiplierAnim.value = getCurrentMultiplier();
+      handleVisualCrash();
     } else {
-      progressAnim.value = 0;
-    }
-  }, [isRunning]);
-
-  useEffect(() => {
-    if (isRunning) {
-      glow.value = withRepeat(
-        withSequence(
-          withTiming(1, { duration: 500 }),
-          withTiming(1, { duration: 500 })
-        ),
-        1,
-        true
-      );
-    }
-  }, [isRunning]);
-  const animatedGlowStyle = useAnimatedStyle(() => {
-    let glowColor = '#369CD4';
-    if (multiplier.value > 2) glowColor = '#9951ffff';
-    if (multiplier.value > 10) glowColor = '#9D1F80';
-
-    return {
-      textShadowRadius: 10 + glow.value * 30,
-      textShadowColor: glowColor,
-      textShadowOffset: { width: 0, height: 0 },
-      opacity: 1,
-    };
-  });
-  useEffect(() => {
-    const t = setTimeout(() => setIsRunning(true), 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!isRunning) return;
-
-    multiplier.value = 1;
-
-    playStartSound(() => {
-      setTimeout(() => {
-        cx.value = withTiming(points[1].x, { duration: riseDuration });
-        cy.value = withTiming(points[1].y, { duration: riseDuration }, () => {
-          if (!isCrashing.value) {
-            cx.value = withRepeat(
-              withSequence(
-                withTiming(loopEnd.x, { duration: 3000 }),
-                withTiming(loopStart.x, { duration: 3000 })
-              ),
-              -1,
-              true
-            );
-            cy.value = withRepeat(
-              withSequence(
-                withTiming(loopEnd.y, { duration: 3000 }),
-                withTiming(loopStart.y, { duration: 3000 })
-              ),
-              -1,
-              true
-            );
-          }
-        });
-
-        sway.value = withRepeat(withTiming(8, { duration: 1000 }), -1, true);
-
-        const startTime = Date.now();
-        let rafId: number;
-
-        const tick = () => {
-          const elapsed = (Date.now() - startTime) / 1000;
-          const growthRate = Math.log(100) / 120;
-
-          const next = Math.exp(growthRate * elapsed);
-          multiplier.value = next;
-
-          if (onUpdate) runOnJS(onUpdate)(next, true);
-
-          if (next >= crashPoint.value) {
-            runOnJS(handleCrash)(next);
-            return;
-          }
-          rafId = requestAnimationFrame(tick);
-        };
-        rafId = requestAnimationFrame(tick);
-
-        return () => {
-          if (rafId) cancelAnimationFrame(rafId);
-          cancelAnimation(cx);
-          cancelAnimation(cy);
-          cancelAnimation(sway);
-        };
-      }, 600);
-    });
-  }, [isRunning]);
-
-  useEffect(() => {
-    let timer: number;
-
-    if (!isRunning && countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
+      resetVisuals();
+      if (status === "COUNTDOWN" && countdown > 0) {
+        progressAnim.value = 0;
+        progressAnim.value = withTiming(1, { duration: countdown * 1000, easing: Easing.linear });
+      }
     }
 
     return () => {
-      clearInterval(timer);
+      if (rafId) cancelAnimationFrame(rafId);
+      cancelAnimation(cx);
+      cancelAnimation(cy);
+      cancelAnimation(sway);
+      cancelAnimation(glow);
     };
-  }, [isRunning, countdown]);
+  }, [status]);
 
 
-  useEffect(() => {
-    if (!isRunning && countdown === 0 && showCrash) {
-      setShowCrash(false);
-      isCrashing.value = false;
-      crashPoint.value = getCrashPoint(({ totalBetAmount: 1000, cashouttotal: 200 }));
-
-      multiplier.value = 1;
-
-      cx.value = points[0].x;
-      cy.value = points[0].y;
-      setIsRunning(true);
-    }
-  }, [isRunning, countdown, showCrash]);
-
-  const handleCrash = (val: number) => {
-    console.log("When Crash leak - fly away : ", val);
-
+  const handleVisualCrash = () => {
     isCrashing.value = true;
     cancelAnimation(cx);
     cancelAnimation(cy);
     cancelAnimation(sway);
+    cx.value = withTiming(WIDTH + 600, { duration: 400 });
+    cy.value = withTiming(-600, { duration: 400 });
+  };
+  const animatedGlowStyle = useAnimatedStyle(() => {
+    const val = multiplierAnim.value;
 
-    cx.value = withTiming(WIDTH + 600, { duration: 400, easing: Easing.quad });
-    cy.value = withTiming(-600, { duration: 400, easing: Easing.quad });
+    let activeColor = "#3aa7e2";
 
-    setShowCrash(true);
-    playCrashSound();
-
-    onCrash?.(val);
-    if (onUpdate) {
-      runOnJS(onUpdate)(val, false);
+    if (val > 10) {
+      activeColor = "#a72187"; // Pink
+    } else if (val > 2) {
+      activeColor = "#7b31e4"; // Purple
     }
 
-    setTimeout(() => {
-      setIsRunning(false);
-      setCountdown(8);
-    }, 2000);
+    return {
+      textShadowColor: activeColor,
+      textShadowRadius: 12 + (glow.value * 60),
+      color: "white",
+    };
+  });
+
+  const resetVisuals = () => {
+    isCrashing.value = false;
+    cx.value = points[0].x;
+    cy.value = points[0].y;
+    multiplierAnim.value = 1.00;
   };
 
-  const playStartSound = (onFinish?: () => void) => {
-    if (!soundEnabled) {
-      onFinish?.();
-      return;
-    }
-    const start = new Sound("startingplane.mp3", Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.log("Failed to load starting sound", error);
-        onFinish?.();
-        return;
-      }
-      start.play(() => {
-        start.release();
-        onFinish?.();
-      });
-    });
-  };
+  // --- PROPS ---
+  const animatedTextProps = useAnimatedProps(() => {
+    return { text: `${multiplierAnim.value.toFixed(2)}x`, value: `${multiplierAnim.value.toFixed(2)}x` } as any;
+  });
 
-  const playCrashSound = () => {
-    if (!soundEnabled) return;
-    const crash = new Sound("flewaway1.mp3", Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.log("Failed to load sound", error);
-        return;
-      }
-      crash.play(() => crash.release());
-    });
-  };
   const animatedPlaneStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: cx.value - 34 },
-      { translateY: cy.value - 70 },
-    ],
+    transform: [{ translateX: cx.value - 34 }, { translateY: cy.value - 70 }],
   }));
+
+  const animatedStrokeProps = useAnimatedProps(() => {
+    const midX = (cx.value + points[0].x) / 1.2 + sway.value;
+    const midY = (cy.value + points[0].y) / 3 + 50;
+    return { d: `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y}`, opacity: isCrashing.value ? 0 : 1 };
+  });
+
+
+  const animatedFillProps = useAnimatedProps(() => {
+    const midX = (cx.value + points[0].x) / 1.2 + sway.value;
+    const midY = (cy.value + points[0].y) / 3 + 50;
+    return { d: `M${cx.value},${cy.value} Q${midX},${midY} ${points[0].x},${points[0].y} L${points[0].x},${HEIGHT} L${cx.value},${HEIGHT} Z`, opacity: isCrashing.value ? 0 : 1 };
+  });
+
+  const progressStyle = useAnimatedStyle(() => ({ width: `${progressAnim.value * 100}%` }));
+
   return (
     <View style={styles.container}>
       <FastImage
-        source={isRunning ? require("../../assets/BGStart.gif") : require("../../assets/BGstop.jpg")}
+        source={status === "RUNNING" ? require("../../assets/BGStart.gif") : require("../../assets/BGstop.jpg")}
         style={StyleSheet.absoluteFillObject}
         resizeMode={FastImage.resizeMode.cover}
       />
-      {isRunning ? (
+
+      {status === "RUNNING" || status === "CRASHED" ? (
         <View style={styles.gameBox}>
-          {isRunning && !showCrash && (
-            <Animated.Text
-              style={[styles.multiplierText, animatedGlowStyle]}>
-              {multiplier.value.toFixed(2)}x
-            </Animated.Text>
+          {status === "RUNNING" && (
+            <AnimatedTextInput
+              underlineColorAndroid="transparent"
+              editable={false}
+              style={[styles.multiplierText, animatedGlowStyle]}
+              animatedProps={animatedTextProps}
+            />
           )}
 
           <Svg width={width} height={HEIGHT} viewBox={`10 -10 ${width} ${HEIGHT}`}>
-            {/* 1. The Fill (Background Area) */}
-            <AnimatedPath
-              animatedProps={animatedFillProps}
-              fill="#d1000098" // The semi-transparent red fill
-              stroke="none"    // No border on the fill
-            />
-
-            {/* 2. The Line (Top Curve) */}
-            <AnimatedPath
-              animatedProps={animatedStrokeProps}
-              stroke="#ff0037ff"
-              strokeWidth={6}
-              strokeLinecap="round"
-              fill="none"      // No fill on the line
-            />
-
+            <AnimatedPath animatedProps={animatedFillProps} fill="#d1000098" stroke="none" />
+            <AnimatedPath animatedProps={animatedStrokeProps} stroke="#ff0037ff" strokeWidth={6} strokeLinecap="round" fill="none" />
             <Animated.View style={animatedPlaneStyle}>
-              <FastImage
-                source={require("../../assets/Aviator.gif")}
-                style={{ width: 120, height: 120 }}
-              />
+              <FastImage source={require("../../assets/Aviator.gif")} style={{ width: 120, height: 120 }} />
             </Animated.View>
           </Svg>
-          {showCrash && (
+
+          {status === "CRASHED" && (
             <View style={styles.crashOverlay}>
               <Text style={styles.flewAway}>FLEW AWAY!</Text>
-              <Text style={styles.crashMultiplier}>
-                {crashPoint.value.toFixed(2)}x
-              </Text>
+              <Text style={styles.crashMultiplier}>{crashPoint.toFixed(2)}x</Text>
             </View>
           )}
         </View>
       ) : (
         <View style={styles.waitBox}>
           <Image source={require("../../assets/TopLogo.png")} style={styles.topLogo} resizeMode="contain" />
-          {countdown > 0 && (
+          {status === "COUNTDOWN" && (
             <>
               <View style={styles.progressContainer}>
                 <Animated.View style={[styles.progressBar, progressStyle]} />
               </View>
               <FastImage source={require("../../assets/Aviator.gif")} style={styles.waitingPlane} resizeMode={FastImage.resizeMode.contain} />
-              <Image source={require("../../assets/spribe.png")} style={styles.spribeLogo} resizeMode="contain" />
             </>
           )}
         </View>
       )}
-      <PlayerCounter
-        isRunning={isRunning}
-        isCrashed={showCrash}
-        countdown={countdown}
-        count={bets?.length ?? 0}
-      />    </View>
+    </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#292929ff",
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 212,
-    overflow: "hidden",
-    borderWidth: 0.5,
-    borderColor: "#3b3b3b",
-    marginHorizontal: 5,
+    backgroundColor: "#292929", borderRadius: 12, alignItems: "center", justifyContent: "center",
+    minHeight: 212, overflow: "hidden", borderWidth: 0.5, borderColor: "#3b3b3b", marginHorizontal: 5,
   },
-  gameBox: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 215,
-  },
+  gameBox: { alignItems: "center", justifyContent: "center", minHeight: 215, width: '100%' },
+  waitBox: { alignItems: "center", justifyContent: "center", width: '100%', minHeight: 215 },
   multiplierText: {
     position: "absolute",
     fontSize: 75,
     fontWeight: "bold",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
     textAlign: "center",
-    textShadowColor: "rgba(0, 0, 0, 0.5)",
-    textShadowOffset: { width: 5, height: 1 },
-    textShadowRadius: 3,
     width: '100%',
-    color: 'white',
+    padding: 0,
+    backgroundColor: 'transparent',
+    textShadowOffset: { width: 0, height: 0 },
   },
 
-  crashOverlay: {
-    position: "absolute",
-    top: "10%",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  flewAway: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 6,
-  },
-  crashMultiplier: {
-    fontSize: 75,
-    fontWeight: "bold",
-    color: "red",
-  },
-  waitingPlane: {
-    position: "absolute",
-    left: -15,
-    bottom: -39,
-    width: 120,
-    height: 120,
-  },
-  topLogo: {
-    width: 160,
-    height: 90,
-  },
-  spribeLogo: {
-    width: 120,
-    height: 80,
-    marginTop: 8,
-  },
-  waitBox: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: '100%',
-    minHeight: 215,
-  },
-  progressContainer: {
-    width: WIDTH - 60,
-    height: 6,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 4,
-    overflow: "hidden",
-    marginTop: 8,
-  },
-  progressBar: {
-    height: "100%",
-    backgroundColor: "#e7000c",
-  },
+  crashOverlay: { position: "absolute", top: "10%", alignItems: "center" },
+  flewAway: { fontSize: 18, fontWeight: "bold", color: "#fff", marginBottom: 6 },
+  crashMultiplier: { fontSize: 75, fontWeight: "bold", color: "red" },
+  topLogo: { width: 160, height: 90 },
+  progressContainer: { width: WIDTH - 60, height: 6, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 4, marginTop: 8, overflow: 'hidden' },
+  progressBar: { height: "100%", backgroundColor: "#e7000c" },
+  waitingPlane: { position: "absolute", left: -15, bottom: -39, width: 120, height: 120 },
 });
-
-
-const PlayerCounter: React.FC<{
-  isRunning: boolean;
-  isCrashed: boolean;
-  countdown: number;
-  count?: number;
-  style?: any;
-}> = ({ isRunning, isCrashed, countdown, count, style }) => {
-  const [internalCount, setInternalCount] = useState(0);
-  const [avatars, setAvatars] = useState<string[]>([
-    `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-    `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-    `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-  ]);
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval> | null = null;
-
-    if (!isRunning && !isCrashed) {
-      interval = setInterval(() => {
-        setInternalCount(c => c + 1);
-        setAvatars([
-          `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-          `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-          `https://i.pravatar.cc/40?img=${Math.floor(Math.random() * 70)}`,
-        ]);
-      }, 400);
-    }
-
-    if (isRunning && !isCrashed) {
-      interval = setInterval(() => {
-        setInternalCount(c => Math.max(0, c - Math.floor(Math.random() * 5 + 1)));
-      }, 700);
-    }
-
-    if (isCrashed && interval) {
-      clearInterval(interval);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning, isCrashed]);
-
-  return (
-    <View style={[playerStyles.playerCounter, style]}>
-      <View style={[playerStyles.container, style]}>
-        <View style={playerStyles.avatars}>
-          {avatars.map((uri, i) => (
-            <Image
-              key={i}
-              source={{ uri }}
-              style={[playerStyles.avatar, { marginLeft: i === 0 ? 0 : -15 }]}
-            />
-          ))}
-        </View>
-        <Text style={playerStyles.count}>
-          {count !== undefined ? count : internalCount}
-        </Text>
-      </View>
-    </View>
-  );
-};
-const playerStyles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#414141a1",
-    paddingHorizontal: 6,
-
-    paddingVertical: 6,
-    borderRadius: 35,
-  },
-  avatars: {
-    flexDirection: "row",
-  },
-  avatar: {
-    width: 25,
-    height: 25,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "lime",
-    backgroundColor: "#fff",
-  },
-  count: {
-    color: "#fff",
-    fontSize: 12,
-    marginHorizontal: 5,
-    fontFamily: "Slabo13px-Regular",
-  },
-  playerCounter: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-  },
-});
-
