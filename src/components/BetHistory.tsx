@@ -21,28 +21,26 @@ export type Bet = {
 type BetHistoryProps = {
   liveMultiplier: number;
   isRunning: boolean;
-  bets: Bet[];
-  setBets: React.Dispatch<React.SetStateAction<Bet[]>>;
+  userBetAmount: number | null; 
+  userCashedOutAt: number | null; 
 };
+
 
 const BetHistory: React.FC<BetHistoryProps> = ({
   liveMultiplier,
   isRunning,
-  bets,
-  setBets,
+  userBetAmount,
+  userCashedOutAt,
 }) => {
-  // We only use this to add money to balance if 'You' win.
-  // Logic for bots remains local here.
-  const { addEarnings } = useEarnings(); 
+  const { addEarnings } = useEarnings();
+  const [bets, setBets] = useState<Bet[]>([]);
 
   const [activeTab, setActiveTab] = useState<"All Bets" | "Previous" | "Top">("All Bets");
-  const [filter, setFilter] = useState("X");
-  
-  // Local state for the UI
   const [fakeTotalUsers, setFakeTotalUsers] = useState(9842);
   const [totalWin, setTotalWin] = useState(0);
+  
+  const [filter, setFilter] = useState("X");
 
-  // Calculate stats
   const winnersCount = bets.filter(b => b.cashout !== undefined).length;
   const totalBots = bets.length;
   const winPercentage = totalBots > 0 ? (winnersCount / totalBots) * 100 : 0;
@@ -51,13 +49,11 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   // --- 1. INITIALIZE ROUND (Generate 200 Bots) ---
   useEffect(() => {
     if (!isRunning) {
-      // Random "10k" number
       setFakeTotalUsers(Math.floor(Math.random() * 3000) + 8500);
 
       // Generate 200 Bots
-      const botCount = 10;
+      const botCount = 15;
       const randomBets: Bet[] = Array.from({ length: botCount }).map((_, i) => {
-        // 40% Safe, 40% Medium, 20% Risky
         const risk = Math.random();
         let target;
         if (risk < 0.4) target = parseFloat((Math.random() * 0.4 + 1.1).toFixed(2)); // 1.1x - 1.5x
@@ -77,28 +73,49 @@ const BetHistory: React.FC<BetHistoryProps> = ({
         };
       });
 
-      setBets(prev => {
-        // Keep "You" if it exists, reset its status
-        const existingMine = prev.find(p => p.isMine);
-        const mine: Bet = existingMine
-          ? { ...existingMine, cashout: undefined, multiplier: undefined, didLose: false, isVisible: true, bet: existingMine.bet || 100 }
-          : { id: "you", user: "You", bet: 100, isMine: true, avatar: "https://i.pravatar.cc/40?img=0", isVisible: true, didLose: false };
-
-        return [mine, ...randomBets];
-      });
+      setBets(randomBets); // Reset with just bots
     }
   }, [isRunning]);
 
+
   // --- 2. GAME LOOP (Update Bots) ---
+  useEffect(() => {
+    setBets((prevBets) => {
+      // Create a clean list of bots (remove old 'you' entries)
+      const botsOnly = prevBets.filter((b) => !b.isMine);
+
+      // If the user has placed a bet, add them to the TOP
+      if (userBetAmount !== null && userBetAmount > 0) {
+        const myBetEntry: Bet = {
+          id: "you",
+          user: "You",
+          bet: userBetAmount,
+          isMine: true,
+          avatar: "https://i.pravatar.cc/40?img=0", // Your avatar
+          isVisible: true,
+          // If cashed out prop is set, show it. Otherwise undefined.
+          cashout: userCashedOutAt ? userBetAmount * userCashedOutAt : undefined,
+          multiplier: userCashedOutAt || undefined,
+          // If game stopped, user didn't cashout, and bet exists -> You lost
+          didLose: !isRunning && !userCashedOutAt,
+        };
+        return [myBetEntry, ...botsOnly];
+      }
+
+      // If no bet placed, just return bots
+      return botsOnly;
+    });
+  }, [userBetAmount, userCashedOutAt, isRunning]);
+
+  // --- 3. FINALIZE (Mark Losers) ---
   useEffect(() => {
     if (!isRunning) return;
 
     setBets(prev =>
       prev.map(b => {
-        // Skip "You" (handled by game logic) or already cashed out
+        // Skip "You" (handled by prop effect above) and cashed out bots
         if (b.isMine || b.cashout !== undefined) return b;
 
-        // Check if Bot hits target
         if (b.multiplierTarget && liveMultiplier >= b.multiplierTarget) {
           return {
             ...b,
@@ -111,12 +128,15 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     );
   }, [liveMultiplier, isRunning]);
 
-  // --- 3. FINALIZE (Mark Losers) ---
+
+
+
+  // --- 4. HANDLE "YOU" WINNING ---
   useEffect(() => {
     if (!isRunning) {
       setBets(prev =>
         prev.map(b => {
-          if (!b.isMine && b.cashout === undefined) {
+          if (b.cashout === undefined) {
             return { ...b, didLose: true };
           }
           return b;
@@ -125,15 +145,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
     }
   }, [isRunning]);
 
-  // --- 4. HANDLE "YOU" WINNING ---
-  useEffect(() => {
-    if (isRunning) return;
-    const myBet = bets.find(b => b.isMine);
-    if (myBet && myBet.cashout !== undefined) {
-      const profit = myBet.cashout - myBet.bet;
-      if (profit > 0) addEarnings(profit);
-    }
-  }, [bets, isRunning]);
+
 
   // --- 5. CALCULATE TOTAL WIN ---
   useEffect(() => {
@@ -156,26 +168,29 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   );
 
   const renderBet = ({ item }: { item: Bet }) => {
-    // Green background if won, Dark if waiting/lost
-    const bgColor = item.cashout !== undefined ? "rgba(31, 50, 13, 0.8)" : "#101112";
-    const textColor = item.cashout !== undefined ? "#4f9222ff" : "#ccc";
+    const isWin = item.cashout !== undefined;
+    // Highlight You: Green border if mine
+    const borderColor = item.isMine ? (isWin ? "#00ff00" : "#fff") : "transparent";
+    const bgColor = isWin ? "rgba(31, 50, 13, 0.8)" : "#101112";
+    const textColor = isWin ? "#4f9222ff" : "#ccc";
 
     return (
-      <View style={[styles.row, { backgroundColor: bgColor }]}>
+      <View style={[styles.row, { backgroundColor: bgColor, borderColor: item.isMine ? '#333' : 'transparent', borderWidth: item.isMine ? 1 : 0 }]}>
         <View style={styles.playerCell}>
-          <Image source={{ uri: item.avatar }} style={[styles.avatar, item.isMine && {borderColor: '#fff'}]} />
-          <Text style={[styles.cell, item.isMine && {color:'#fff', fontWeight:'bold'}]}>{item.user}</Text>
+          <Image source={{ uri: item.avatar }} style={[styles.avatar, item.isMine && { borderColor: '#fff', borderWidth: 1 }]} />
+          <Text style={[styles.cell, item.isMine && { color: '#fff', fontWeight: '900' }]}>{item.user}</Text>
         </View>
         <Text style={styles.betCell}>{item.bet.toFixed(2)}</Text>
         <Text style={styles.multCell}>
-          {item.multiplier !== undefined ? `${item.multiplier.toFixed(2)}x` : ` `}
+          {item.multiplier !== undefined ? `${item.multiplier.toFixed(2)}x` : `-`}
         </Text>
         <Text style={[styles.cashCell, { color: textColor }]}>
-          {item.cashout !== undefined ? item.cashout.toFixed(2) : " "}
+          {item.cashout !== undefined ? item.cashout.toFixed(2) : "-"}
         </Text>
       </View>
     );
   };
+
 
   return (
     <View style={styles.container}>
@@ -186,13 +201,10 @@ const BetHistory: React.FC<BetHistoryProps> = ({
             style={[styles.tab, activeTab === tab && styles.activeTab]}
             onPress={() => setActiveTab(tab as any)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-              {tab}
-            </Text>
+            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>{tab}</Text>
           </TouchableOpacity>
         ))}
       </View>
-
       {activeTab === "All Bets" && (
         <View style={{ flex: 1 }}>
           <View style={styles.infoBox}>
@@ -250,11 +262,11 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
       {activeTab === "Previous" && (
         <View style={{ flex: 1 }}>
-           <View style={styles.roundResultBox}>
+          <View style={styles.roundResultBox}>
             <Text style={styles.roundLabel}>Round Result</Text>
             <Text style={styles.roundValue}>2.64x</Text>
           </View>
-           <FlatList
+          <FlatList
             data={visibleBets}
             keyExtractor={(item) => item.id}
             renderItem={renderBet}
@@ -266,7 +278,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
 
       {activeTab === "Top" && (
         <View style={{ flex: 1 }}>
-           <View style={styles.filterBox}>
+          <View style={styles.filterBox}>
             <View style={styles.filterRow}>
               {["X", "Win", "Rounds"].map((f) => (
                 <TouchableOpacity key={f} style={[styles.filterBtn, filter === f && styles.activeFilter]} onPress={() => setFilter(f)}>
@@ -274,11 +286,11 @@ const BetHistory: React.FC<BetHistoryProps> = ({
                 </TouchableOpacity>
               ))}
             </View>
-           </View>
-           <Text style={{color:'#555', textAlign:'center', marginTop:20}}>Top bets list...</Text>
-           <View style={{ marginTop: 'auto' }}>
-             <FooterComponent />
-           </View>
+          </View>
+          <Text style={{ color: '#555', textAlign: 'center', marginTop: 20 }}>Top bets list...</Text>
+          <View style={{ marginTop: 'auto' }}>
+            <FooterComponent />
+          </View>
         </View>
       )}
     </View >
@@ -295,7 +307,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
   },
-  
+
   infoBox: {
     borderRadius: 15,
     backgroundColor: "#111",
@@ -322,9 +334,9 @@ const styles = StyleSheet.create({
     borderColor: "#4f9222ff",
     marginRight: -8,
   },
-  counter: { 
+  counter: {
     color: "#4f9222ff",
-    fontSize: 12, 
+    fontSize: 12,
     fontWeight: 'bold',
     marginTop: 2,
     marginLeft: 2
@@ -340,8 +352,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginTop: 8,
   },
-  progressBar: { 
-    height: "100%", 
+  progressBar: {
+    height: "100%",
     backgroundColor: "#4f9222ff",
   },
   headerRow: {
@@ -351,11 +363,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#222",
   },
-  header: { 
-    color: "#777", 
-    fontSize: 10, 
-    flex: 1, 
-    textAlign: "center" 
+  header: {
+    color: "#777",
+    fontSize: 10,
+    flex: 1,
+    textAlign: "center"
   },
   listWrapper: {
     flex: 1,
@@ -404,14 +416,14 @@ const styles = StyleSheet.create({
   },
   footerTop: { flexDirection: "row", alignItems: "center" },
   footerText: { color: "#666", fontSize: 9 },
-  footerPowered: { marginLeft: 10, flexDirection:'row' },
+  footerPowered: { marginLeft: 10, flexDirection: 'row' },
   poweredGray: { color: "#666", fontSize: 9 },
   poweredWhite: { color: "#aaa", fontSize: 9, fontWeight: 'bold' },
-  
+
   roundResultBox: { backgroundColor: "#111", borderRadius: 10, padding: 10, alignItems: "center", marginBottom: 8 },
   roundLabel: { color: "#aaa", fontSize: 12 },
   roundValue: { color: "#ff00c3", fontSize: 18, fontWeight: "bold" },
-  filterBox: { backgroundColor: "#111", borderRadius: 14, paddingVertical: 2, marginBottom:5 },
+  filterBox: { backgroundColor: "#111", borderRadius: 14, paddingVertical: 2, marginBottom: 5 },
   filterRow: { flexDirection: "row", justifyContent: "space-around", marginVertical: 2 },
   filterBtn: { paddingVertical: 6, width: 80, alignItems: "center", borderRadius: 13 },
   activeFilter: { backgroundColor: "#333" },

@@ -4,84 +4,78 @@ import React, { useEffect, useState, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Switch, TextInput } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import InfoModal from "./InfoModal";
-import DepositModal from "./Deposit/DepositModal";
-import { useTotalBet } from "../context/BalanceContext";
 import DepositScreen from "./Deposit/DepositScreen";
-import { useEarnings } from "../context/EarningsContext";
+import { useTotalBet } from "../context/BalanceContext";
 
 type Props = {
   id: number;
   onAdd?: () => void;
   onRemove?: (id: number) => void;
-  balance: number;  // <-- add balance
-
+  balance: number;
   liveMultiplier?: number;
   isRunning?: boolean;
   onPlaceBet?: (amount: number) => void;
-  onCashOut?: (amount: number, multiplier: number) => void; onCrash?: (val: number) => void;
+  onCashOut?: (amount: number, multiplier: number) => void;
+  onCrash?: (val: number) => void;
   onUpdate?: (val: number, isRunning: boolean) => void;
-  onPress?: () => void; // <-- added
-  title?: string;       // <-- added
+  onPress?: () => void;
+  title?: string;
   onCancelBet?: (amount: number) => void;
-  openDepositModal?: () => void; // <-- optional deposit modal
-
+  openDepositModal?: () => void;
 };
-
 
 const BetBox: React.FC<Props> = ({
   liveMultiplier,
   isRunning,
   onPlaceBet,
   onCashOut,
-  onCrash,
   id, onAdd, onRemove,
-  onUpdate,
   onPress = () => { },
-  title = "Bet",
   onCancelBet,
 }) => {
   const [activeTab, setActiveTab] = useState<"Bet" | "Auto">("Bet");
+
+  // 1. New State for the Text Input
   const [amount, setAmount] = useState<number>(100);
+  const [inputValue, setInputValue] = useState<string>("100");
+
   const [hasBet, setHasBet] = useState(false);
   const [queuedNextRound, setQueuedNextRound] = useState(false);
   const { balance } = useTotalBet();
-  const [betBoxes, setBetBoxes] = useState([1]); // start with 1 box
 
   const [hasCashedOut, setHasCashedOut] = useState(false);
   const [frozenMultiplier, setFrozenMultiplier] = useState(1);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [roundBetPlaced, setRoundBetPlaced] = useState(false);
-  const [hasQueuedBet, setHasQueuedBet] = useState(false);
-  const [hasActiveBet, setHasActiveBet] = useState(false);
-  const pressLock = useRef(false);
-
-  const [toggleText, setToggleText] = useState(true); // true = Bet, false = Cancel
 
   // New auto options
   const [autoBet, setAutoBet] = useState(false);
   const [autoCash, setAutoCash] = useState(false);
   const [autoCashMultiplier, setAutoCashMultiplier] = useState("1.00");
-  const [isAdded, setIsAdded] = useState(true); // start as added
-  const [showModal, setShowModal] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
 
   const presets = [100, 200, 500, 1000];
 
+  // Helper to safely update amount AND text (for buttons)
+  const updateAmount = (newAmount: number) => {
+    const validAmount = Math.max(1, newAmount); // Prevent negative
+    setAmount(validAmount);
+    setInputValue(validAmount.toString());
+  };
+
   useEffect(() => {
     if (autoBet && !isRunning && !hasBet && !roundBetPlaced) {
       setHasBet(true);
-      setRoundBetPlaced(true); // mark this round as placed
+      setRoundBetPlaced(true);
       onPlaceBet?.(amount);
     }
   }, [autoBet, isRunning, hasBet, amount, roundBetPlaced, onPlaceBet]);
-
-
 
   useEffect(() => {
     if (autoCash && hasBet && isRunning && !hasCashedOut) {
       const target = parseFloat(autoCashMultiplier) || 1;
       if ((liveMultiplier || 0) >= target) {
-        const currentMultiplier = liveMultiplier || 1;  // ✅ define it here
+        const currentMultiplier = liveMultiplier || 1;
         setFrozenMultiplier(currentMultiplier);
         onCashOut?.(amount, currentMultiplier);
         setShowModal(true);
@@ -91,41 +85,22 @@ const BetBox: React.FC<Props> = ({
     }
   }, [autoCash, hasBet, isRunning, liveMultiplier, amount, autoCashMultiplier, onCashOut, hasCashedOut]);
 
-
   useEffect(() => {
     if (!isRunning) {
-      setHasBet(false);
-      setHasCashedOut(false);
-      setRoundBetPlaced(false); // reset for next round
-    }
-  }, [isRunning]);
-  // ... inside BetBox.tsx
-
-  useEffect(() => {
-    // When the game stops (Crash) or restarts (Loading)
-    if (!isRunning) {
-      
       if (queuedNextRound) {
-        // 1. If we queued a bet, make it active now
         setHasBet(true);
         setQueuedNextRound(false);
-        // 2. CRITICAL FIX: Actually tell the game we placed a bet
-        onPlaceBet?.(amount); 
+        onPlaceBet?.(amount);
       } else {
-        // 3. Otherwise, reset bet state
         setHasBet(false);
       }
-      
       setHasCashedOut(false);
       setRoundBetPlaced(false);
     }
-  }, [isRunning]); // Removed queuedNextRound from dependency array to avoid loops, or handle carefully
-
-
+  }, [isRunning]);
 
   return (
     <View style={styles.container}>
-      {/* Header (Bet | Auto) */}
       <View style={styles.headerRow}>
         <View style={styles.headerTabs}>
           <TouchableOpacity
@@ -144,170 +119,169 @@ const BetBox: React.FC<Props> = ({
         </View>
 
         {onAdd && (
-          <TouchableOpacity style={styles.iconButton} onPress={onAdd}>
-            <MaterialCommunityIcons name="layers-plus" size={19} color="#00f700b4" />
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={onAdd}
+            activeOpacity={0.7}
+          >
+            {/* Wrapper to hold the stacked boxes */}
+            <View style={styles.iconWrapper}>
+
+              {/* The Back Box (Shadow/Background layer) */}
+              <View style={styles.backBox} />
+
+              {/* The Front Box (Contains the Plus) */}
+              <View style={styles.frontBox}>
+                <View style={styles.plusHorizontal} />
+                <View style={styles.plusVertical} />
+              </View>
+
+            </View>
           </TouchableOpacity>
+
         )}
 
         {onRemove && (
-          <TouchableOpacity style={styles.iconButton} onPress={() => onRemove(id)}>
-            <MaterialCommunityIcons name="inbox-remove" size={19} color="#dfdfdfff" />
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => onRemove(id)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.minusBox}>
+              <View style={styles.minusLine} />
+            </View>
           </TouchableOpacity>
+
         )}
-
-
       </View>
 
-      {/* Main row for Bet: left column + right column */}
       <View style={styles.mainRow}>
-        {/* Left column */}
         <View style={styles.leftCol}>
-          {/* + [amount] - */}
           <View style={styles.amountRow}>
             <TouchableOpacity
               style={styles.roundBtn}
-              onPress={() => setAmount(a => Math.max(1, a - 1))}            >
+              onPress={() => updateAmount(amount - 1)} // Use helper
+            >
               <Text style={styles.roundBtnText}>-</Text>
             </TouchableOpacity>
 
             <View style={styles.amountBox}>
               <TextInput
                 style={styles.amountText}
-                value={amount.toString()}
+                value={inputValue} // Bind to string state
                 keyboardType="decimal-pad"
                 onChangeText={(text) => {
+                  setInputValue(text); // Allow empty string while typing
                   const parsed = parseFloat(text);
-                  setAmount(!isNaN(parsed) ? parsed : 0);
+                  if (!isNaN(parsed) && parsed > 0) {
+                    setAmount(parsed);
+                  } else {
+                    // Don't setAmount(0) instantly or it breaks logic, 
+                    // just wait for valid input
+                  }
+                }}
+                onBlur={() => {
+                  // When user leaves field, format it nicely
+                  if (!inputValue || parseFloat(inputValue) === 0) {
+                    updateAmount(10); // default fallback
+                  } else {
+                    setInputValue(amount.toString());
+                  }
                 }}
               />
             </View>
 
-
             <TouchableOpacity
               style={styles.roundBtn}
-              onPress={() => setAmount(a => Math.max(1, a + 1))}
+              onPress={() => updateAmount(amount + 1)} // Use helper
             >
               <Text style={styles.roundBtnText}>+</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Presets 2x2 */}
           <View style={styles.presetsContainer}>
             {presets.map((val) => (
               <TouchableOpacity
                 key={val}
                 style={styles.presetBtn}
-                onPress={() => setAmount(currentAmount => currentAmount + val)}              >
+                onPress={() => updateAmount(amount + val)} // Use helper
+              >
                 <Text style={styles.presetText}>{val}</Text>
               </TouchableOpacity>
             ))}
           </View>
+
           {activeTab === "Auto" && (
             <View style={styles.AutoContainer}>
-
-              <>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <Text style={{ color: "#fff", fontFamily: "", fontSize: 10 }}>Auto Bet</Text>
-                  <View style={styles.switchWrapper}>
-                    <Switch
-                      value={autoBet}
-                      onValueChange={setAutoBet}
-                      thumbColor={autoBet ? "#f4f3f4" : "#707070ff"}
-                      trackColor={{ false: "#111", true: "#111" }} // this controls the track colors
-                    />
-                  </View>
-
-                  <Text style={{ color: "#fff", fontFamily: "", fontSize: 10 }}>Auto Cash Out</Text>
-                  <View style={styles.switchWrapper}>
-                    <Switch
-                      value={autoCash}
-                      onValueChange={setAutoCash}
-                      thumbColor={autoCash ? "#f4f3f4" : "#707070ff"}
-                      trackColor={{ false: "#111", true: "#111" }} // this controls the track colors
-                    />
-                  </View>
-                  {autoCash && (
-                    <TextInput
-                      style={{
-                        backgroundColor: "#222",
-                        color: "#fff",
-                        borderRadius: 8,
-                        height: 35,
-                        textAlign: "center",
-                        fontFamily: "ZalandoSansSemiExpanded-Mediums",
-                        marginTop: 5,
-
-                        paddingHorizontal: 8,
-                        fontSize: 10,
-                      }}
-                      keyboardType="decimal-pad"
-                      value={autoCashMultiplier}
-                      onChangeText={setAutoCashMultiplier}
-                      placeholder="Cash Out Multiplier"
-                      placeholderTextColor="#888"
-                    />
-                  )}
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <Text style={{ color: "#fff", fontSize: 10 }}>Auto Bet</Text>
+                <View style={styles.switchWrapper}>
+                  <Switch
+                    value={autoBet}
+                    onValueChange={setAutoBet}
+                    thumbColor={autoBet ? "#f4f3f4" : "#707070ff"}
+                    trackColor={{ false: "#111", true: "#111" }}
+                  />
                 </View>
 
-
-              </>
+                <Text style={{ color: "#fff", fontSize: 10 }}>Auto Cash Out</Text>
+                <View style={styles.switchWrapper}>
+                  <Switch
+                    value={autoCash}
+                    onValueChange={setAutoCash}
+                    thumbColor={autoCash ? "#f4f3f4" : "#707070ff"}
+                    trackColor={{ false: "#111", true: "#111" }}
+                  />
+                </View>
+                {autoCash && (
+                  <TextInput
+                    style={{
+                      backgroundColor: "#222", color: "#fff", borderRadius: 8, height: 35,
+                      textAlign: "center", marginTop: 5, paddingHorizontal: 8, fontSize: 10,
+                    }}
+                    keyboardType="decimal-pad"
+                    value={autoCashMultiplier}
+                    onChangeText={setAutoCashMultiplier}
+                    placeholder="X"
+                    placeholderTextColor="#888"
+                  />
+                )}
+              </View>
             </View>
           )}
         </View>
 
         {depositVisible && (
-          <DepositScreen
-            onClose={() => {
-              setDepositVisible(false);
-            }}
-          />
+          <DepositScreen onClose={() => setDepositVisible(false)} />
         )}
-        {/* Right column */}
+
         <View style={styles.rightCol}>
           <TouchableOpacity
             style={[
               styles.betBtn,
-              !isRunning && !hasBet && { backgroundColor: "#39b613ff" }, // 🟩 ready
-              !isRunning && hasBet && { backgroundColor: "#ff0000ff" }, // 🔴 cancel pre‑round
-              isRunning && hasBet && !queuedNextRound && { backgroundColor: "#f59032ff" }, // 🟠 active
-              isRunning && queuedNextRound && { backgroundColor: "#ff0000ff" }, // 🔴 queued next
-              isRunning && !hasBet && !queuedNextRound && { backgroundColor: "#39b613ff" }, // 🟩 idle mid‑round
+              !isRunning && !hasBet && { backgroundColor: "#2f960fff" },
+              !isRunning && hasBet && { backgroundColor: "#ff0000ff" },
+              isRunning && hasBet && !queuedNextRound && { backgroundColor: "#f59032ff" },
+              isRunning && queuedNextRound && { backgroundColor: "#ff0000ff" },
+              isRunning && !hasBet && !queuedNextRound && { backgroundColor: "#2f960fff" },
             ]}
             onPress={() => {
               if (!balance || balance <= 0) {
-                Alert.alert(
-                  "Hey!",
-                  "You don’t have money. Would you like to deposit now?",
-                  [
-                    {
-                      text: "Cancel",
-                      style: "cancel",
-                    },
-                    {
-                      text: "Deposit",
-                      onPress: () => setDepositVisible(true),
-                    },
-                  ]
-                );
+                Alert.alert("Hey!", "You don’t have money.", [{ text: "Cancel" }, { text: "Deposit", onPress: () => setDepositVisible(true) }]);
                 return;
               }
 
-
-              // Pre‑round
               if (!isRunning) {
-                // guard against rapid tapping before state updates
                 if (hasBet) {
                   setHasBet(false);
                   setQueuedNextRound(false);
                   onCancelBet?.(amount);
                   return;
                 }
-
                 setHasBet(true);
                 onPlaceBet?.(amount);
                 return;
               }
-
 
               if (isRunning && hasBet && !queuedNextRound) {
                 const multiplier = liveMultiplier || 1;
@@ -319,29 +293,18 @@ const BetBox: React.FC<Props> = ({
               }
 
               if (isRunning && queuedNextRound) {
-                // cancel queued (the red “wait for next round”)
                 setQueuedNextRound(false);
-                setHasBet(false);               // 🧹 ensure fully cleared
+                setHasBet(false);
                 onCancelBet?.(amount);
                 return;
               }
 
-              // Too late ‑ queue for next round
               if (isRunning && !hasBet && !queuedNextRound) {
                 setQueuedNextRound(true);
               }
             }}
           >
-            <Text
-              style={[
-                styles.betBtnText,
-                (!isRunning && !hasBet) || (isRunning && !hasBet && !queuedNextRound)
-                  ? { fontSize: 19 } // Bet state
-                  : (isRunning && hasBet && !queuedNextRound)
-                    ? { fontSize: 20 } // Cash Out state
-                    : { fontSize: 13 }, // Cancel states
-              ]}
-            >
+            <Text style={[styles.betBtnText, { fontSize: 20 }]}>
               <View style={{ alignItems: 'center' }}>
                 {!isRunning && !hasBet ? (
                   <>
@@ -353,14 +316,12 @@ const BetBox: React.FC<Props> = ({
                 ) : isRunning && hasBet && !queuedNextRound ? (
                   <>
                     <Text style={styles.action}>Cash Out</Text>
-                    <Text style={styles.amount}>
-                      {(amount * (liveMultiplier || 1)).toFixed(2)} INR
-                    </Text>
+                    <Text style={styles.amount}>{(amount * (liveMultiplier || 1)).toFixed(2)} INR</Text>
                   </>
                 ) : isRunning && queuedNextRound ? (
                   <>
                     <Text style={styles.action}>Cancel</Text>
-                    <Text style={styles.amount}>(wait for next round)</Text>
+                    <Text style={styles.amount1}>(next round)</Text>
                   </>
                 ) : (
                   <>
@@ -369,180 +330,121 @@ const BetBox: React.FC<Props> = ({
                   </>
                 )}
               </View>
-
             </Text>
-
           </TouchableOpacity>
-
 
           <InfoModal
             visible={showModal}
             onClose={() => {
               setShowModal(false);
-
-              // Reset after modal closes
               setHasBet(false);
               setHasCashedOut(false);
             }}
             betAmount={amount}
             frozenMultiplier={frozenMultiplier}
           />
-
         </View>
       </View>
     </View>
-
   );
 };
 
 const styles = StyleSheet.create({
-  action: {
-    fontSize: 20,
-    color: '#ddd',
-    fontFamily: "Barlow-Medium"
-  },
-  amount: {
-    color: '#ddd',
-  },
-  switchWrapper: {
-    width: 50,                // container width
-    marginTop: 10,
-    borderRadius: 50,
-    backgroundColor: "#111", // your custom background
-    justifyContent: "center",
-  },
-  container: {
-    padding: 8,
-    backgroundColor: "#1B1C1E",
-    borderColor: "#1B1C1E",
-    borderRadius: 12,
-    marginHorizontal: 5,
-    marginTop: 5,
-  },
-  AutoContainer: {
-    paddingHorizontal: 12,
-    marginHorizontal: 0,
-    borderWidth: 0.5,
-    borderTopColor: "#000000ff",
-    width: 330,
-    marginTop: 10,
-    borderColor: "#1B1C1E",
-  },
-  /* Header */
+  action: { fontSize: 20, color: '#ddd', fontFamily: "Barlow-Medium" },
+  amount: { color: '#ddd', fontSize: 20 },
+  switchWrapper: { width: 50, marginTop: 10, borderRadius: 50, backgroundColor: "#111", justifyContent: "center" },
+  amount1: { color: '#ddd', fontSize: 15 },
+  container: { padding: 8, backgroundColor: "#1B1C1E", borderRadius: 12, marginHorizontal: 5, marginTop: 5 },
+  AutoContainer: { paddingHorizontal: 12, borderWidth: 0.5, borderTopColor: "#000", width: 330, marginTop: 10, borderColor: "#1B1C1E" },
   headerRow: { flexDirection: "row", marginBottom: 7 },
-  headerTabs: {
-    flexDirection: "row",
-    marginLeft: 70,
-    height: 30,
-    backgroundColor: "#111",
-    borderRadius: 20,
-    padding: 4,
-  },
-  tab: {
-    paddingVertical: 1,
-    paddingHorizontal: 35,
-    borderRadius: 16,
-  },
-  switch: { height: 20, backgroundColor: "#89a6e0ff", borderRadius: 50, },
+  headerTabs: { flexDirection: "row", marginLeft: 70, height: 30, backgroundColor: "#111", borderRadius: 20, padding: 4 },
+  tab: { paddingVertical: 1, paddingHorizontal: 35, borderRadius: 16 },
+  activeTab: { backgroundColor: "#2C2C2E", paddingVertical: 1, paddingHorizontal: 40 },
+  tabText: { color: "#636363", fontSize: 11, marginTop: 2 },
+  activeTabText: { color: "#fff" },
+  iconButton: { padding: 7, marginLeft: 30, width: 25, height: 25, borderRadius: 50, backgroundColor: "#4e4e4e", justifyContent: "center", alignItems: "center" },
 
-  iconButton: {
-    marginLeft: 30,
-    width: 25,
-    height: 25,
-    borderRadius: 50,
-    backgroundColor: "#4e4e4eff",
-    justifyContent: "center",
-    alignItems: "center",
-  }
-
-  ,
-  activeTab: {
-    backgroundColor: "#2C2C2E", paddingVertical: 1, paddingHorizontal: 40
-  },
-  tabText: { color: "#636363ff", fontFamily: "Roboto-VariableFont_wdth,wght", fontSize: 11, marginTop: 2 },
-  activeTabText: { color: "#fff", fontFamily: "Roboto-VariableFont_wdth,wght", },
-
-  /* Main layout */
-  mainRow: { flexDirection: "row", backgroundColor: "#1B1C1E", },
+  mainRow: { flexDirection: "row", backgroundColor: "#1B1C1E" },
   leftCol: { flex: 1, marginRight: 10 },
   rightCol: { width: 175, justifyContent: "flex-start" },
-
-  /* Amount row */
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
-    backgroundColor: "#111",
-    borderRadius: 16,
-    height: 30,
-  },
-  roundBtn: {
-    width: 23,
-    height: 23,
-    backgroundColor: "#222",
-    marginHorizontal: 4,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  roundBtnText: { color: "#fff", fontSize: 14, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
-  amountBox: {
-    flex: 1,
-    borderRadius: 8,
-    paddingVertical: -2,
-    alignItems: "center",
-  },
-  amountText: { color: "#fff", marginTop: -5, fontSize: 10, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
-
-  /* Presets grid */
-  presetsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-  presetBtn: {
-    width: "48%",
-    backgroundColor: "#111",
-    borderRadius: 15,
-    height: 20,
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  presetText: { color: "#6d6c6cff", fontSize: 12, fontFamily: "ZalandoSansSemiExpanded-Mediums" },
-
-  /* Right column */
-  betBtnSubText: {
-    color: "#ddd",
-    fontSize: 12,
-    fontWeight: "500",
-    fontFamily: "Barlow-Regular",
-    textAlign: "center",
-    marginTop: 2,
-  },
-  betBtn: {
-    borderRadius: 8,
-    width: 170,
-    height: 85,
-    borderColor: "#fff",
-    borderWidth: 0.5,
-    alignItems: "center",     // centers children horizontally
-    justifyContent: "center", // centers children vertically
-  },
-  betBtnText: {
-    color: "#ffffffda",
-    textAlign: "center",
-    fontFamily: "Montserrat-Regular",
-    fontSize: 20,
-    lineHeight: 16,
+  amountRow: { flexDirection: "row", alignItems: "center", marginBottom: 5, backgroundColor: "#111", borderRadius: 16, height: 30 },
+  roundBtn: { width: 23, height: 23, backgroundColor: "#222", marginHorizontal: 4, borderRadius: 18, alignItems: "center", justifyContent: "center" },
+  roundBtnText: { color: "#fff", fontSize: 14 },
+  amountBox: { flex: 1, borderRadius: 8, alignItems: "center" },
+  amountText: { color: "#fff", marginTop: -2, fontSize: 12, width: '100%', textAlign: 'center' },
+  presetsContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
+  presetBtn: { width: "48%", backgroundColor: "#111", borderRadius: 15, height: 20, alignItems: "center", marginBottom: 4 },
+  presetText: { color: "#6d6c6c", fontSize: 12 },
+  betBtn: { borderRadius: 8, width: 170, height: 85, borderColor: "#fff", borderWidth: 0.5, alignItems: "center", justifyContent: "center" },
+  betBtnText: { color: "#ffffffda", textAlign: "center", fontSize: 20, lineHeight: 16 },
+  minusBox: {
+    width: 17,
+    height: 13,
+    borderWidth: 1.5,
+    borderColor: '#bbbbbbff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 3, // optional (slightly rounded)
   },
 
-  currencyBox: {
-    backgroundColor: "#111",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
+  minusLine: {
+    width: 8,
+    height: 1.5,
+    backgroundColor: '#bbbbbbff',
+    borderRadius: 2,
   },
-  currencyText: { color: "#fff", fontWeight: "700" },
+
+
+  backBox: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 14,
+    height: 10,
+    borderWidth: 1.5,
+    borderColor: '#00f700b4',
+    borderRadius: 2,
+  },
+
+
+
+  frontBox: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 14,
+    height: 10,
+    borderWidth: 1.5,
+    borderColor: '#00f700b4',
+    borderRadius: 2,
+    backgroundColor: '#4e4e4e', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+
+  iconWrapper: {
+    width: 18,
+    height: 14,
+    position: 'relative', // Needed for absolute positioning children
+  },
+
+  plusVertical: {
+    width: 1.5,
+    height: 6,
+    backgroundColor: '#00f700b4',
+    borderRadius: 1,
+    position: 'absolute',
+  },
+
+  plusHorizontal: {
+    width: 6,
+    height: 1.5,
+    backgroundColor: '#00f700b4',
+    borderRadius: 1,
+    position: 'absolute', // Ensures perfect center with vertical
+  },
+
 });
 
 export default BetBox;

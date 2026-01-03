@@ -10,10 +10,25 @@ import {
   Animated,
   Dimensions,
 } from "react-native";
+import {
+  CircleUserRound,
+  Volume1,
+  Music,
+  CircleQuestionMarkIcon,
+  Star,
+  FileText,
+  Wallet,
+  History,
+  Book,
+  ScrollText,
+  ShieldCheck,
+  Home,
+} from 'lucide-react-native';
+
 import Ionicons from "react-native-vector-icons/Ionicons";
+import AvatarModal from "./AvatarModal";
 import Sound from 'react-native-sound';
 Sound.setCategory('Playback');
-import AvatarModal from "./AvatarModal";
 import BetHistoryModal from "./BetHistoryModal";
 import GameLimits from "./GameLimits";
 import HowToPlay from "./HowToPlay";
@@ -108,7 +123,7 @@ const SettingsPopout: React.FC<Props> = ({
           style={styles.changeAvatarBtn}
           onPress={() => setAvatarVisible(true)}
         >
-          <Ionicons name="person-circle-outline" size={22} color="#8a8a8aff" />
+          <CircleUserRound size={22} color="#8a8a8aff" />
           <Text style={styles.changeAvatarText}>Change{"\n"}Avatar</Text>
         </TouchableOpacity>
 
@@ -122,7 +137,7 @@ const SettingsPopout: React.FC<Props> = ({
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.row}>
-          <Ionicons name="volume-high-outline" size={20} color="#ccc" />
+          <Volume1 size={20} color="#727272ff" />
           <Text style={styles.label}>Sound</Text>
           <Switch value={soundEnabled} onValueChange={setSoundEnabled}
             trackColor={{ false: "#575757ff", true: "#575757ff" }}
@@ -130,8 +145,7 @@ const SettingsPopout: React.FC<Props> = ({
             ios_backgroundColor="#3e3e3e" />
         </View>
         <View style={styles.row}>
-          <Ionicons name="musical-notes-outline" size={20} color="#ccc" />
-          <Text style={styles.label}>Music</Text>
+          <Ionicons name="musical-notes-outline" size={20} color="#727272ff" />          <Text style={styles.label}>Music</Text>
           <Switch
             value={music}
             onValueChange={(val) => {
@@ -150,8 +164,22 @@ const SettingsPopout: React.FC<Props> = ({
         </View>
 
         <View style={styles.row}>
-          <Ionicons name="sparkles-outline" size={20} color="#ccc" />
+          <TouchableOpacity
+            style={styles.iconButton}
+            activeOpacity={0.7}
+          >
+            <View style={styles.propellerContainer}>
+              <View style={[styles.blade, styles.blade1]} />
+
+              <View style={[styles.blade, styles.blade2]} />
+
+              <View style={[styles.blade, styles.blade3]} />
+
+              <View style={styles.centerHub} />
+            </View>
+          </TouchableOpacity>
           <Text style={styles.label}>Animation</Text>
+
           <Switch value={animation} onValueChange={setAnimation}
             trackColor={{ false: "#575757ff", true: "#575757ff" }}
             thumbColor={animation ? "#ffffff" : "#aaa"}
@@ -164,8 +192,8 @@ const SettingsPopout: React.FC<Props> = ({
             style={styles.menuItem}
             onPress={() => setTestBetVisible(true)}
           >
-            <Ionicons name="gift-outline" size={18} color="#ccc" />
-            <Text style={styles.menuText}>FREE Bets</Text>
+            <Star size={18} color="#727272ff" />
+            <Text style={styles.menuText}>Free Bets</Text>
           </TouchableOpacity>
           <TestBetsModal visible={testBetVisible} onClose={() => setTestBetVisible(false)} />
 
@@ -173,7 +201,8 @@ const SettingsPopout: React.FC<Props> = ({
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => setHistoryVisible(true)}
-          >            <Ionicons name="document-text-outline" size={18} color="#ccc" />
+          >
+            <History size={18} color="#727272ff" />
             <Text style={styles.menuText}>My Bet History</Text>
           </TouchableOpacity>
           <BetHistoryModal
@@ -181,37 +210,67 @@ const SettingsPopout: React.FC<Props> = ({
             onClose={() => setHistoryVisible(false)}
           />
 
-
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => setGameLimitsVisible(true)}
           >
-            <Ionicons name="cash-outline" size={18} color="#ccc" />
+            <View style={styles.billBody}>
+
+              <View style={styles.centerRect} />
+
+              <View style={[styles.cornerCircle, styles.topLeft]} />
+              <View style={[styles.cornerCircle, styles.topRight]} />
+              <View style={[styles.cornerCircle, styles.bottomLeft]} />
+              <View style={[styles.cornerCircle, styles.bottomRight]} />
+
+            </View>
             <Text style={styles.menuText}>Game Limits</Text>
           </TouchableOpacity>
 
 
           <TouchableOpacity style={styles.menuItem} onPress={() => setHowToPlayVisible(true)}>
-            <Ionicons name="book-outline" size={18} color="#ccc" />
+            <CircleQuestionMarkIcon size={18} color="#727272ff" />
             <Text style={styles.menuText}>How To Play</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => setGameRulesVisible(true)}>
-            <Ionicons name="newspaper-outline" size={18} color="#ccc" />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setGameRulesVisible(true)}
+          >
+            <ScrollText
+              size={18}
+              color="#727272ff"
+            />
             <Text style={styles.menuText}>Game Rules</Text>
           </TouchableOpacity>
 
+
           <TouchableOpacity style={styles.menuItem} onPress={() => setProvablyFairVisible(true)}>
-            <Ionicons name="shield-checkmark-outline" size={18} color="#ccc" />
+            <ShieldCheck size={18} color="#727272ff" />
             <Text style={styles.menuText}>Provably Fair Settings</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <Ionicons name="home-outline" size={18} color="#ccc" />
+      <TouchableOpacity
+        style={styles.footer}
+        onPress={onClose}
+        activeOpacity={0.7}
+      >
+        <View style={styles.houseContainer}>
+
+          <View style={styles.roof} />
+
+          <View style={styles.body}>
+
+            <View style={styles.door} />
+
+          </View>
+
+        </View>
         <Text style={styles.footerText}>Home</Text>
-      </View>
+      </TouchableOpacity>
+
       <GameLimits visible={gameLimitsVisible} onClose={() => setGameLimitsVisible(false)} />
       <ChangeNameModal visible={changeNameVisible} onClose={() => setChangeNameVisible(false)} />
 
@@ -237,6 +296,52 @@ const styles = StyleSheet.create({
     backgroundColor: "#2C2E2F",
     zIndex: 999,
   },
+  houseContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+
+  roof: {
+    width: 14,
+    height: 14,
+    borderTopWidth: 1.5,
+    borderLeftWidth: 1.5,
+    borderColor: '#727272ff',
+    backgroundColor: 'transparent',
+    transform: [{ rotate: '45deg' }],
+    marginBottom: -5,
+    zIndex: 2,
+  },
+
+  body: {
+    width: 16,
+    height: 11,
+    borderLeftWidth: 1.5,
+    borderRightWidth: 1.5,
+    borderBottomWidth: 1.5,
+    borderColor: '#727272ff',
+    backgroundColor: 'transparent',
+    position: 'relative',
+    alignItems: 'center',
+  },
+
+  door: {
+    position: 'absolute',
+    bottom: -1.9999,
+    width: 6,
+    height: 7,
+
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+
+    borderWidth: 1.5,
+    borderBottomWidth: 0,
+    borderColor: '#727272ff',
+
+    backgroundColor: '#2A2A2A',
+  },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -254,6 +359,54 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
   },
+  billBody: {
+    width: 22,
+    height: 13,
+    borderWidth: 1.5,
+    borderColor: '#727272ff',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+
+  centerRect: {
+    width: 6,
+    height: 5,
+    borderRadius: 0.6,
+    borderWidth: 0.6,
+    borderColor: '#727272ff',
+    backgroundColor: 'transparent',
+    zIndex: 2,
+  },
+
+  cornerCircle: {
+    position: 'absolute',
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    borderWidth: 1,
+    borderColor: '#727272ff',
+    zIndex: 1,
+  },
+
+  topLeft: {
+    top: -4.5,
+    left: -4.5,
+  },
+  topRight: {
+    top: -4.5,
+    right: -4.5,
+  },
+  bottomLeft: {
+    bottom: -4.5,
+    left: -4.5,
+  },
+  bottomRight: {
+    bottom: -4.5,
+    right: -4.5,
+  },
+
   avatar: {
     width: 45,
     height: 45,
@@ -337,6 +490,63 @@ const styles = StyleSheet.create({
     top: 12,
     right: 15,
   },
+
+  iconButton: {
+    padding: 7,
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+
+  propellerContainer: {
+    width: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+
+  blade: {
+    position: 'absolute',
+    width: 3.5,
+    height: 11,
+    borderRadius: 10,
+    borderWidth: 1.2,
+    borderColor: '#727272ff',
+    backgroundColor: 'transparent',
+  },
+
+
+  blade1: {
+    transform: [
+      { rotate: '0deg' },
+      { translateY: -6.5 }
+    ],
+  },
+  blade2: {
+    transform: [
+      { rotate: '120deg' },
+      { translateY: -6.5 }
+    ],
+  },
+  blade3: {
+    transform: [
+      { rotate: '240deg' },
+      { translateY: -6.5 }
+    ],
+  },
+
+  centerHub: {
+    position: 'absolute',
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    borderWidth: 1.2,
+    borderColor: '#727272ff',
+    backgroundColor: '#4e4e4e',
+    zIndex: 1,
+  },
+
 });
 
 export default SettingsPopout;

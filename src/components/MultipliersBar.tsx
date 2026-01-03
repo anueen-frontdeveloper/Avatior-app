@@ -8,10 +8,10 @@ import {
   ScrollView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import Animated, { 
-  FadeInLeft, 
-  Layout, 
-  ZoomIn 
+import Animated, {
+  FadeInLeft,
+  Layout,
+  ZoomIn
 } from "react-native-reanimated";
 
 type Props = {
@@ -28,10 +28,10 @@ const getRandomMultiplier = () => (1 + Math.random() * 9).toFixed(2);
 
 const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
   const [showModal, setShowModal] = useState(false);
-  
+
   // Internal state that holds BOTH fake history + real history with IDs
   const [items, setItems] = useState<HistoryItem[]>([]);
-  
+
   // Track the previous length to know when a NEW item arrived
   const prevCountRef = useRef(0);
 
@@ -39,7 +39,7 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
   useEffect(() => {
     const fakeData: HistoryItem[] = [];
     let lastVal = 1.00;
-    
+
     for (let i = 0; i < 20; i++) {
       let val = parseFloat(getRandomMultiplier());
       // Logic to prevent too many small numbers in a row
@@ -47,7 +47,7 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
         val = 1.5 + Math.random() * 1.5;
       }
       lastVal = val;
-      
+
       fakeData.push({
         id: `fake-${i}`, // Stable ID for fake items
         value: val.toFixed(2),
@@ -61,7 +61,7 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
     // If we have more multipliers than before, a crash just happened
     if (multipliers.length > prevCountRef.current) {
       const newMultiplierValue = multipliers[0]; // The newest one is at index 0
-      
+
       const newItem: HistoryItem = {
         id: `real-${Date.now()}`, // Unique ID based on time
         value: newMultiplierValue,
@@ -69,7 +69,7 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
 
       setItems((prev) => [newItem, ...prev]); // Add to start (Triggers Animation)
     }
-    
+
     // Update ref for next comparison
     prevCountRef.current = multipliers.length;
   }, [multipliers]);
@@ -102,7 +102,7 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
             return (
               <Animated.View
                 key={item.id} // <--- CRITICAL: Must be unique for animation to work
-                entering={FadeInLeft.duration(400)} // The "Step 1: Fade In"
+                entering={FadeInLeft.duration(200)} // The "Step 1: Fade In"
                 layout={Layout.springify().damping(14)} // The "Step 2: Slide Others"
                 style={styles.pillContainer}
               >
@@ -126,18 +126,18 @@ const MultipliersBar: React.FC<Props> = ({ multipliers }) => {
           style={styles.moreBtn}
           onPress={() => setShowModal(true)}
         >
-          <Icon name="more-horiz" size={20} color="#fff" />
+          <Icon name="more-horiz" size={17} color="#949494ff" />
         </TouchableOpacity>
       </View>
 
       {/* MODAL (No animation needed here usually, just a grid) */}
-      <Modal visible={showModal} animationType="slide" transparent>
+      <Modal visible={showModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Round History</Text>
               <TouchableOpacity onPress={() => setShowModal(false)} style={styles.moreBtn}>
-                <Icon name="close" size={19} color="white" />
+                <Icon name="close" size={15} color="white" />
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -172,19 +172,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingLeft: 10,
-    overflow: 'hidden', // Keeps animation clean
+    overflow: 'hidden',
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
   },
   pillContainer: {
-    marginRight: 10, // Spacing handled by the view, not the text
+    marginRight: 15, // Spacing handled by the view, not the text
   },
   text: {
     fontSize: 12,
+    bottom: 2,
     fontFamily: "Slabo13px-Regular",
-    fontWeight: 'bold',
   },
   moreBtn: {
     width: 32,
@@ -202,15 +202,14 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: 'flex-end',
+    marginTop: 90,
   },
   modalContent: {
     backgroundColor: "#1c1c1c",
-    width: "100%",
-    height: "50%",
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
+    width: "95%",
+    marginHorizontal: "2.5%",
+    height: "35%",
+    borderRadius: 15,
     padding: 10,
   },
   modalHeader: {
@@ -220,10 +219,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 5,
   },
-  modalTitle: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: "#fff" 
+  modalTitle: {
+    fontSize: 12,
+    fontFamily: "Slabo13px-Regular",
+    color: "#fff"
   },
   tableCell: {
     fontSize: 14,

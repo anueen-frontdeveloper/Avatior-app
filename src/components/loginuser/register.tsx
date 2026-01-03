@@ -37,7 +37,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   const hasUpperLower = /[A-Z]/.test(password) && /[a-z]/.test(password);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="fade" transparent>
       <View style={styles.overlay}>
         <View style={styles.modalBox}>
           <ScrollView showsVerticalScrollIndicator={false}>

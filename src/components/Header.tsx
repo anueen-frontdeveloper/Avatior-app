@@ -31,7 +31,7 @@ export default function Header() {
       >
         <Ionicons name="chevron-back" size={20} color="#fff" />
         {/* Using Roboto-Medium for navigation text */}
-        <Text style={styles.backText}>Profile</Text>
+        <Text style={styles.backText}>Back</Text>
       </TouchableOpacity> 
 
       {/* --- Right Section: Balance, Deposit, Star --- */}
@@ -41,7 +41,7 @@ export default function Header() {
         <View style={styles.balanceWrapper}>
           <View style={styles.currencyRow}>
             <Text style={styles.currencyText}>INR</Text>
-            <MaterialIcons name="keyboard-arrow-down" size={12} color="#8E8E93" style={{ marginTop: 1 }} />
+            <MaterialIcons name="keyboard-arrow-down" size={17} color="#8E8E93" style={{ marginTop: 1 }} />
           </View>
           {/* Using Roboto-Bold for numbers */}
           <Text style={styles.balanceText}>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   currencyText: {
     color: "#8E8E93",
-    fontSize: 10,
+    fontSize: 12,
     marginRight: 2,
     // YOUR FONT:
     fontFamily: "Roboto-Bold",

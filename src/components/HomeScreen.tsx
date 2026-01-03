@@ -1,43 +1,46 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { ScrollView, StyleSheet, View, TouchableOpacity, Text, Modal } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
+// Components
 import Header from "./Header";
 import HeaderLogin from "./HeaderLogin";
 import BalanceHeader from "./BalanceHeader";
 import MultipliersBar from "./MultipliersBar";
 import GameBoard from "./GameBoard";
 import BetBox from "./BetBox";
-import BetHistory, { Bet } from "./BetHistory";
+import BetHistory from "./BetHistory"; // Note: removed { Bet } import as it's internal now
 
+// Contexts
 import { useTotalBet } from "../context/BalanceContext";
 import { EarningsProvider } from "../context/EarningsContext";
 import { useAuth } from "../context/AuthContext";
-import { useGame } from "../context/GameContext"; // <--- 1. IMPORT CONTEXT
+import { useGame } from "../context/GameContext";
 
 const HomeScreen: React.FC = () => {
   const { balance } = useTotalBet();
   const { isLoggedIn, setShowRegister } = useAuth();
-  
-  // <--- 2. USE GLOBAL GAME STATE
-  const { history, status, getCurrentMultiplier } = useGame(); 
+
+  // 1. GAME CONTEXT
+  const { history, status, getCurrentMultiplier } = useGame();
 
   const [betBoxes, setBetBoxes] = useState<number[]>([Date.now()]);
-  const [bets, setBets] = useState<Bet[]>([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
 
-  // Local state purely to update BetBox/BetHistory UI
+  // 2. LOCAL STATE FOR UI SYNC
   const [liveMultiplier, setLiveMultiplier] = useState(1);
-  const isRunning = status === "RUNNING"; 
+  const isRunning = status === "RUNNING";
 
-  // <--- 3. SYNC LOOP: Bridge Global Context -> Local State for Child Components
+  // 3. USER BET STATE (The Bridge between BetBox and BetHistory)
+  const [myBetAmount, setMyBetAmount] = useState<number | null>(null);
+  const [myCashoutMult, setMyCashoutMult] = useState<number | null>(null);
+
+  // --- SYNC LOOP ---
   useEffect(() => {
     let rafId: number;
-
     const syncLoop = () => {
       if (status === "RUNNING") {
-        // Pull the exact number from context without causing lag
         setLiveMultiplier(getCurrentMultiplier());
         rafId = requestAnimationFrame(syncLoop);
       } else if (status === "CRASHED") {
@@ -46,13 +49,32 @@ const HomeScreen: React.FC = () => {
         setLiveMultiplier(1);
       }
     };
-
     syncLoop();
     return () => cancelAnimationFrame(rafId);
   }, [status, getCurrentMultiplier]);
 
+  useEffect(() => {
+    if (status === "IDLE") {
+      setMyBetAmount(null);
+      setMyCashoutMult(null);
+    }
+  }, [status]);
 
-  // Welcome Modal Logic
+  const handlePlaceBet = (amount: number) => {
+    setMyBetAmount(amount); // This triggers "You" to appear in BetHistory
+    setMyCashoutMult(null);
+  };
+
+  const handleCashOut = (amount: number, multiplier: number) => {
+    setMyCashoutMult(multiplier); // This updates "You" row to Green/Win
+  };
+
+  const handleCancelBet = (amount: number) => {
+    setMyBetAmount(null); // This removes "You" from BetHistory
+    setMyCashoutMult(null);
+  };
+
+  // --- WELCOME MODAL ---
   useEffect(() => {
     if (isLoggedIn) {
       setShowWelcome(true);
@@ -78,23 +100,27 @@ const HomeScreen: React.FC = () => {
 
           <View style={styles.gameContent}>
             <BalanceHeader onPanelToggle={setIsPanelOpen} />
-            
-            {/* 4. PASS GLOBAL HISTORY HERE */}
+
             <MultipliersBar multipliers={history} />
 
-            {/* 5. REMOVED onUpdate/onCrash (Context handles it) */}
-            <GameBoard bets={bets} />
+            {/* Note: GameBoard bets prop removed or set to empty if it 
+                was relying on the old logic. The new BetHistory handles display. */}
+            <GameBoard bets={[]} />
 
             {betBoxes.map((id, index) => (
               <BetBox
                 key={id}
                 id={id}
                 balance={balance ?? 0}
-                liveMultiplier={liveMultiplier} // Passed from our Sync Loop
-                isRunning={isRunning}           // Derived from Context Status
-                onPlaceBet={() => {}}
-                onCashOut={() => {}}
-                onCancelBet={() => {}}
+                liveMultiplier={liveMultiplier}
+                isRunning={isRunning}
+
+                // CONNECT THE ACTIONS
+                onPlaceBet={handlePlaceBet}
+                onCashOut={handleCashOut}
+                onCancelBet={handleCancelBet}
+
+                // Add/Remove Box Logic
                 onAdd={
                   index === 0 && betBoxes.length < 2
                     ? () => setBetBoxes((prev) => [...prev, prev.length + 1])
@@ -111,8 +137,9 @@ const HomeScreen: React.FC = () => {
             <BetHistory
               liveMultiplier={liveMultiplier}
               isRunning={isRunning}
-              bets={bets}
-              setBets={setBets}
+              // PASS THE STATE DOWN
+              userBetAmount={myBetAmount}
+              userCashedOutAt={myCashoutMult}
             />
 
             {!isLoggedIn && (
