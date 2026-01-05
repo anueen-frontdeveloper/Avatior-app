@@ -49,7 +49,7 @@ export default function BalloonThread({ bets }: { bets?: any[] }) {
       isCrashing.value = false;
 
       // Start Pulse for Glow
-      glow.value = withRepeat(withTiming(1, { duration: 800 }), -1, true);
+      glow.value = withRepeat(withTiming(1, { duration: 1600 }), -1, true);
 
       // --- PLANE MOVEMENT (Slow Start -> Speed Up -> Slow End) ---
       const moveEasing = Easing.inOut(Easing.quad);
@@ -103,8 +103,8 @@ export default function BalloonThread({ bets }: { bets?: any[] }) {
     cancelAnimation(cx);
     cancelAnimation(cy);
     cancelAnimation(sway);
-    cx.value = withTiming(WIDTH + 600, { duration: 400 });
-    cy.value = withTiming(-600, { duration: 400 });
+    cx.value = withTiming(WIDTH + 1200, { duration: 400 });
+    cy.value = withTiming(-1200, { duration: 400 });
   };
 
   const animatedGlowStyle = useAnimatedStyle(() => {

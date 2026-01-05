@@ -168,7 +168,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
   );
 
   const renderBet = ({ item }: { item: Bet }) => {
-    const isWin = item.cashout !== undefined;
+    const isWin = item.cashout !== undefined; 
     // Highlight You: Green border if mine
     const borderColor = item.isMine ? (isWin ? "#00ff00" : "#fff") : "transparent";
     const bgColor = isWin ? "rgba(31, 50, 13, 0.8)" : "#101112";
@@ -182,10 +182,10 @@ const BetHistory: React.FC<BetHistoryProps> = ({
         </View>
         <Text style={styles.betCell}>{item.bet.toFixed(2)}</Text>
         <Text style={styles.multCell}>
-          {item.multiplier !== undefined ? `${item.multiplier.toFixed(2)}x` : `-`}
+          {item.multiplier !== undefined ? `${item.multiplier.toFixed(2)}x` : ` `}
         </Text>
         <Text style={[styles.cashCell, { color: textColor }]}>
-          {item.cashout !== undefined ? item.cashout.toFixed(2) : "-"}
+          {item.cashout !== undefined ? item.cashout.toFixed(2) : " "}
         </Text>
       </View>
     );
@@ -235,7 +235,7 @@ const BetHistory: React.FC<BetHistoryProps> = ({
           </View>
 
           <View style={styles.headerRow}>
-            <Text style={styles.header}>Player</Text>
+            <Text style={styles.header}>Player</ Text>
             <Text style={styles.header}>Bet INR</Text>
             <Text style={styles.header}>X</Text>
             <Text style={styles.header}>Win INR</Text>

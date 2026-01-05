@@ -37,7 +37,7 @@ const BetBox: React.FC<Props> = ({
 
   // 1. New State for the Text Input
   const [amount, setAmount] = useState<number>(100);
-  const [inputValue, setInputValue] = useState<string>("100");
+  const [inputValue, setInputValue] = useState<string>("10");
 
   const [hasBet, setHasBet] = useState(false);
   const [queuedNextRound, setQueuedNextRound] = useState(false);
@@ -370,8 +370,23 @@ const styles = StyleSheet.create({
   amountRow: { flexDirection: "row", alignItems: "center", marginBottom: 5, backgroundColor: "#111", borderRadius: 16, height: 30 },
   roundBtn: { width: 23, height: 23, backgroundColor: "#222", marginHorizontal: 4, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   roundBtnText: { color: "#fff", fontSize: 14 },
-  amountBox: { flex: 1, borderRadius: 8, alignItems: "center" },
-  amountText: { color: "#fff", marginTop: -2, fontSize: 12, width: '100%', textAlign: 'center' },
+  amountBox: {
+    flex: 1,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center" // 1. Vertically center the Input inside the box
+  },
+  amountText: {
+    color: "#fff",
+    fontSize: 12,
+    width: '100%',
+    textAlign: 'center',
+    fontFamily: "Roboto_Condensed-Bold",
+    padding: 0,             // Removes default OS padding that causes the clipping
+    margin: 0,              // Reset margins
+    textAlignVertical: 'center', // Helps on Android
+    height: '100%'          // Ensures the input fills the parent height
+  },
   presetsContainer: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" },
   presetBtn: { width: "48%", backgroundColor: "#111", borderRadius: 15, height: 20, alignItems: "center", marginBottom: 4 },
   presetText: { color: "#6d6c6c", fontSize: 12 },
@@ -417,7 +432,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#00f700b4',
     borderRadius: 2,
-    backgroundColor: '#4e4e4e', 
+    backgroundColor: '#4e4e4e',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,

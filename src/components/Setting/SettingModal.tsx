@@ -1,5 +1,6 @@
 // src/components/Setting/SettingModal.tsx
 
+import { LogOut } from 'lucide-react-native';
 import React from 'react';
 import {
   StyleSheet,
@@ -24,21 +25,21 @@ interface SettingModalProps {
     phone: string;
     email: string;
     currency: string;
-  }; 
+  };
 }
 
 // Reusable Row Component
 const SettingRow = ({ label, value, showChevron, isVerified, showFlag, isLast, actionText, onPress }: any) => (
   <TouchableOpacity
     style={[styles.row, !isLast && styles.rowBorder]}
-    disabled={!onPress} 
+    disabled={!onPress}
     onPress={onPress}
   >
     <Text style={styles.label}>{label}</Text>
     <View style={styles.rightSide}>
       {/* --- FIX: Display dynamic value --- */}
       {value && <Text style={styles.value}>{value}</Text>}
-      
+
       {showFlag && <Text style={{ fontSize: 18, marginLeft: 5 }}>🇮🇳</Text>}
       {isVerified && <Icon name="check-decagram" size={18} color="#00C853" style={{ marginLeft: 8 }} />}
       {actionText && <Text style={styles.actionText}>{actionText}</Text>}
@@ -70,7 +71,7 @@ export default function SettingModal({ onBack, onClose, onNavigate, userData }: 
           {/* Section: Main Data */}
           <Text style={styles.sectionTitle}>Main data</Text>
           <View style={styles.cardGroup}>
-            
+
             {/* --- REAL DATA CONNECTION HERE --- */}
             <SettingRow
               label="Name"
@@ -78,7 +79,7 @@ export default function SettingModal({ onBack, onClose, onNavigate, userData }: 
               showChevron
               onPress={() => onNavigate('changeName')}
             />
-            
+
             <SettingRow
               label="Date of birth"
               value={userData.dob} // <--- Uses real DoB
@@ -98,7 +99,7 @@ export default function SettingModal({ onBack, onClose, onNavigate, userData }: 
               value={userData.phone} // <--- Uses real Phone
               isVerified
               isLast
-              onPress={() => onNavigate('changePhone')} 
+              onPress={() => onNavigate('changePhone')}
             />
           </View>
 
@@ -128,9 +129,13 @@ export default function SettingModal({ onBack, onClose, onNavigate, userData }: 
           <Text style={styles.helperText}>
             Enter your current password to make changes
           </Text>
+          <Text style={styles.sectionTitle}>Other settings</Text>
 
           <View style={styles.singleCard}>
             <SettingRow label="Active sessions" actionText="End" isLast />
+          </View>
+          <View style={styles.Logout}>
+            <Text style={styles.Logouttext}>Logout</Text>
           </View>
 
         </ScrollView>
@@ -164,4 +169,7 @@ const styles = StyleSheet.create({
   actionText: { fontSize: 14, color: '#D32F2F', fontWeight: '700' },
   helperText: { fontSize: 12, color: '#666', marginBottom: 15, marginTop: 2 },
   linkText: { color: '#007AFF', fontWeight: '600' },
+  Logout:  { backgroundColor: 'rgba(0, 0, 0, 1)', borderRadius: 12, paddingHorizontal: 26, paddingVertical: 2, marginBottom: 8 , flexDirection: 'row', alignItems: 'center'},
+  Logouttext: { fontSize: 15, fontWeight: '700', color: '#5f0000ff' },
+  
 });
